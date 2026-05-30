@@ -193,3 +193,9 @@ Neste caso, garanta que `npm` esteja instalado e disponivel no `PATH`, para que 
 ## Licenca
 
 MIT
+
+## Atualizar pacote no npm
+
+```bash
+npm publish
+```

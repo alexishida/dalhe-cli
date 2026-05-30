@@ -204,6 +204,43 @@ test('uninstalls skill globally from Codex and Claude Code', async () => {
   }
 });
 
+test('uninstalls all skills globally from Codex and Claude Code', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-skill-uninstall-all-'));
+  const templateRootDir = join(workspace, 'templates');
+  const userHomeDir = join(workspace, 'home');
+  const codexHomeDir = join(workspace, 'codex-home');
+
+  try {
+    await mkdir(templateRootDir, { recursive: true });
+    await createSkillTemplate(templateRootDir, 'nodejs-dev');
+    await createSkillTemplate(templateRootDir, 'pure-ruby');
+
+    const manager = new SkillManager({
+      templateRootDir,
+      env: { CODEX_HOME: codexHomeDir },
+      userHomeDir,
+    });
+
+    await manager.installAll();
+
+    const result = await manager.uninstallAll();
+
+    assert.equal(result.totalUninstalled, 2);
+    assert.deepEqual(
+      result.removedSkills.map((skill) => skill.name),
+      ['nodejs-dev', 'pure-ruby'],
+    );
+    assert.equal(await exists(join(codexHomeDir, 'skills', 'nodejs-dev')), false);
+    assert.equal(await exists(join(codexHomeDir, 'skills', 'pure-ruby')), false);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'skills', 'nodejs-dev')), false);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'skills', 'pure-ruby')), false);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'commands', 'nodejs-dev.md')), false);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'commands', 'pure-ruby.md')), false);
+  } finally {
+    await rm(workspace, { force: true, recursive: true });
+  }
+});
+
 test('updates all installed skills from current templates', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-skill-update-all-'));
   const templateRootDir = join(workspace, 'templates');

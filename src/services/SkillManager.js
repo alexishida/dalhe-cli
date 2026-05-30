@@ -56,34 +56,20 @@ export class SkillManager {
 
   async uninstall(skillName) {
     await this.#skillSourceDir(skillName);
+    return this.#uninstallSkill(skillName);
+  }
 
-    const codexDir = this.#codexSkillDir(skillName);
-    const claudeDir = this.#claudeSkillDir(skillName);
-    const claudeCommandFile = this.#claudeCommandFile(skillName);
-    const codexInstalled = await this.#exists(codexDir);
-    const claudeInstalled = await this.#exists(claudeDir);
-    const commandInstalled = await this.#exists(claudeCommandFile);
+  async uninstallAll() {
+    const skills = await this.list();
+    const removedSkills = [];
 
-    if (codexInstalled) {
-      await rm(codexDir, { force: true, recursive: true });
-    }
-
-    if (claudeInstalled) {
-      await rm(claudeDir, { force: true, recursive: true });
-    }
-
-    if (commandInstalled) {
-      await rm(claudeCommandFile, { force: true });
+    for (const skill of skills) {
+      removedSkills.push(await this.#uninstallSkill(skill.name));
     }
 
     return {
-      name: skillName,
-      codexDir,
-      claudeDir,
-      claudeCommandFile,
-      removedFromCodex: codexInstalled,
-      removedFromClaude: claudeInstalled,
-      removedCommand: commandInstalled,
+      totalUninstalled: removedSkills.length,
+      removedSkills,
     };
   }
 
@@ -202,6 +188,37 @@ export class SkillManager {
       codexDir,
       claudeDir,
       claudeCommandFile,
+    };
+  }
+
+  async #uninstallSkill(skillName) {
+    const codexDir = this.#codexSkillDir(skillName);
+    const claudeDir = this.#claudeSkillDir(skillName);
+    const claudeCommandFile = this.#claudeCommandFile(skillName);
+    const codexInstalled = await this.#exists(codexDir);
+    const claudeInstalled = await this.#exists(claudeDir);
+    const commandInstalled = await this.#exists(claudeCommandFile);
+
+    if (codexInstalled) {
+      await rm(codexDir, { force: true, recursive: true });
+    }
+
+    if (claudeInstalled) {
+      await rm(claudeDir, { force: true, recursive: true });
+    }
+
+    if (commandInstalled) {
+      await rm(claudeCommandFile, { force: true });
+    }
+
+    return {
+      name: skillName,
+      codexDir,
+      claudeDir,
+      claudeCommandFile,
+      removedFromCodex: codexInstalled,
+      removedFromClaude: claudeInstalled,
+      removedCommand: commandInstalled,
     };
   }
 

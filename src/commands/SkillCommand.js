@@ -20,6 +20,7 @@ export class SkillCommand {
       '  dalhe skill install <skill-name>',
       '  dalhe skill install-all',
       '  dalhe skill uninstall <skill-name>',
+      '  dalhe skill uninstall-all',
       '  dalhe skill update-all',
       '',
       'Manages global skill installation for Codex and Claude Code.',
@@ -58,6 +59,12 @@ export class SkillCommand {
           message: this.#uninstallMessage(await this.skillManager.uninstall(skillName)),
         };
 
+      case 'uninstall-all':
+        this.#assertNoArgs([skillName, ...rest], 'uninstall-all');
+        return {
+          message: this.#uninstallAllMessage(await this.skillManager.uninstallAll()),
+        };
+
       case 'update-all':
         this.#assertNoArgs([skillName, ...rest], 'update-all');
         return {
@@ -66,7 +73,7 @@ export class SkillCommand {
 
       default:
         throw new CliError(
-          `Invalid skill subcommand: ${subcommand || '(empty)'}. Use list, install, install-all, uninstall, or update-all.`,
+          `Invalid skill subcommand: ${subcommand || '(empty)'}. Use list, install, install-all, uninstall, uninstall-all, or update-all.`,
           { code: 'INVALID_SUBCOMMAND' },
         );
     }
@@ -120,6 +127,18 @@ export class SkillCommand {
     return [
       `${result.totalInstalled} skill${result.totalInstalled > 1 ? 's' : ''} installed globally.`,
       ...result.installedSkills.map((skill) => `- ${skill.name}`),
+      '',
+    ].join('\n');
+  }
+
+  #uninstallAllMessage(result) {
+    if (result.totalUninstalled === 0) {
+      return 'No skills available to uninstall.\n';
+    }
+
+    return [
+      `${result.totalUninstalled} skill${result.totalUninstalled > 1 ? 's' : ''} removed globally.`,
+      ...result.removedSkills.map((skill) => `- ${skill.name}`),
       '',
     ].join('\n');
   }

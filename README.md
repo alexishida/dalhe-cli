@@ -82,6 +82,7 @@ dalhe skill list
 dalhe skill install <skill-name>
 dalhe skill install-all
 dalhe skill uninstall <skill-name>
+dalhe skill uninstall-all
 dalhe skill update-all
 dalhe update
 dalhe --help
@@ -156,6 +157,14 @@ Removes skill from both global destinations.
 
 ```bash
 dalhe skill uninstall rails8
+```
+
+### Uninstall all
+
+Removes all skills shipped with this CLI from both global destinations.
+
+```bash
+dalhe skill uninstall-all
 ```
 
 ### Bulk update

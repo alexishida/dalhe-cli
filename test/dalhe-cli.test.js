@@ -164,6 +164,39 @@ test('installs all available skills', async () => {
   }
 });
 
+test('uninstalls all available skills', async () => {
+  const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-uninstall-all-'));
+  const codexHome = resolve(fakeHome, 'codex-home');
+  const parsedHome = parse(fakeHome);
+  const env = {
+    HOME: fakeHome,
+    USERPROFILE: fakeHome,
+    HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
+    HOMEPATH: fakeHome.slice(parsedHome.root.length - 1),
+    CODEX_HOME: codexHome,
+  };
+
+  try {
+    const installResult = runCli(['skill', 'install-all'], { env });
+
+    assert.equal(installResult.status, 0);
+
+    const result = runCli(['skill', 'uninstall-all'], { env });
+
+    assert.match(result.stdout, /\d+ skills removed globally\./);
+    assert.match(result.stdout, /- rails8/);
+    assert.equal(result.stderr, '');
+    assert.equal(result.status, 0);
+    assert.equal(await readFile(join(codexHome, 'skills', 'rails8', 'SKILL.md'), 'utf8').catch(() => null), null);
+    assert.equal(
+      await readFile(join(fakeHome, '.claude', 'skills', 'rails8', 'SKILL.md'), 'utf8').catch(() => null),
+      null,
+    );
+  } finally {
+    await rm(fakeHome, { force: true, recursive: true });
+  }
+});
+
 async function createFakeOpenSpec(binDir, markerFile) {
   await rm(binDir, { force: true, recursive: true });
   await writeFile(markerFile, '');

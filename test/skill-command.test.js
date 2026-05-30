@@ -51,3 +51,23 @@ test('skill install-all shows installed skill names', async () => {
     ['2 skills installed globally.', '- nodejs-dev', '- pure-ruby', ''].join('\n'),
   );
 });
+
+test('skill uninstall-all shows removed skill names', async () => {
+  const command = new SkillCommand({
+    skillManager: {
+      async uninstallAll() {
+        return {
+          totalUninstalled: 2,
+          removedSkills: [{ name: 'nodejs-dev' }, { name: 'pure-ruby' }],
+        };
+      },
+    },
+  });
+
+  const result = await command.execute(['uninstall-all']);
+
+  assert.equal(
+    result.message,
+    ['2 skills removed globally.', '- nodejs-dev', '- pure-ruby', ''].join('\n'),
+  );
+});

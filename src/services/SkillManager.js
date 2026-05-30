@@ -135,19 +135,19 @@ export class SkillManager {
 
   async #skillSourceDir(skillName) {
     if (!skillName) {
-      throw new CliError('Informe nome da skill.', {
+      throw new CliError('Provide a skill name.', {
         code: 'MISSING_SKILL_NAME',
       });
     }
 
     const sourceDir = join(this.templateRootDir, skillName);
 
-    await this.#assertDirectory(sourceDir, `Skill nao encontrada: ${skillName}`);
+    await this.#assertDirectory(sourceDir, `Skill not found: ${skillName}`);
 
     const skillFile = join(sourceDir, SKILL_FILENAME);
 
     if (!(await this.#exists(skillFile))) {
-      throw new CliError(`Arquivo ${SKILL_FILENAME} nao encontrado para skill: ${skillName}`, {
+      throw new CliError(`File ${SKILL_FILENAME} not found for skill: ${skillName}`, {
         code: 'INVALID_SKILL_TEMPLATE',
       });
     }
@@ -191,7 +191,7 @@ export class SkillManager {
     return skill.codex.installed || skill.claude.installed || skill.claudeCommand?.installed;
   }
 
-  async #assertDirectory(directory, message = `Pasta nao encontrada: ${directory}`) {
+  async #assertDirectory(directory, message = `Directory not found: ${directory}`) {
     const info = await stat(directory).catch((error) => {
       if (error.code === 'ENOENT') {
         return null;

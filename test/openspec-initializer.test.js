@@ -19,19 +19,19 @@ test('runs openspec init in target directory', async () => {
   });
 
   const result = await initializer.initialize({
-    targetDir: '/tmp/projeto',
+    targetDir: '/tmp/project',
   });
 
   assert.deepEqual(calls, [
     {
       command: openspecCommand,
       args: ['init', '--tools', DEFAULT_OPENSPEC_TOOLS],
-      cwd: '/tmp/projeto',
+      cwd: '/tmp/project',
     },
   ]);
   assert.equal(result.command, openspecCommand);
   assert.equal(result.install, null);
-  assert.equal(result.targetDir, '/tmp/projeto');
+  assert.equal(result.targetDir, '/tmp/project');
 });
 
 test('uses openspec.cmd on Windows', async () => {
@@ -44,14 +44,14 @@ test('uses openspec.cmd on Windows', async () => {
   });
 
   await initializer.initialize({
-    targetDir: 'C:\\projeto',
+    targetDir: 'C:\\project',
   });
 
   assert.deepEqual(calls, [
     {
       command: 'openspec.cmd',
       args: ['init', '--tools', DEFAULT_OPENSPEC_TOOLS],
-      cwd: 'C:\\projeto',
+      cwd: 'C:\\project',
     },
   ]);
 });
@@ -69,7 +69,7 @@ test('propagates cli errors from openspec init', async () => {
   await assert.rejects(
     () =>
       initializer.initialize({
-        targetDir: '/tmp/projeto',
+        targetDir: '/tmp/project',
       }),
     (error) =>
       error instanceof CliError &&
@@ -90,7 +90,7 @@ test('installs openspec globally when command is missing, then runs init', async
       runCalls.push(input);
 
       if (runCalls.length === 1) {
-        throw new CliError('openspec ausente', {
+        throw new CliError('openspec missing', {
           code: 'OPENSPEC_NOT_FOUND',
         });
       }
@@ -98,7 +98,7 @@ test('installs openspec globally when command is missing, then runs init', async
   });
 
   const result = await initializer.initialize({
-    targetDir: '/tmp/projeto',
+    targetDir: '/tmp/project',
   });
 
   assert.deepEqual(installCalls, [
@@ -111,12 +111,12 @@ test('installs openspec globally when command is missing, then runs init', async
     {
       command: openspecCommand,
       args: ['init', '--tools', DEFAULT_OPENSPEC_TOOLS],
-      cwd: '/tmp/projeto',
+      cwd: '/tmp/project',
     },
     {
       command: openspecCommand,
       args: ['init', '--tools', DEFAULT_OPENSPEC_TOOLS],
-      cwd: '/tmp/projeto',
+      cwd: '/tmp/project',
     },
   ]);
   assert.deepEqual(result.install, {

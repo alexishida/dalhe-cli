@@ -29,7 +29,7 @@ export class CliApplication {
     const command = this.#commands.get(commandName);
 
     if (!command) {
-      await this.#write(io.stderr, `Comando desconhecido: ${commandName}\n\n${this.#helpText()}`);
+      await this.#write(io.stderr, `Unknown command: ${commandName}\n\n${this.#helpText()}`);
       return 1;
     }
 
@@ -52,7 +52,7 @@ export class CliApplication {
         return error.exitCode;
       }
 
-      await this.#write(io.stderr, `Erro inesperado: ${error.message}\n`);
+      await this.#write(io.stderr, `Unexpected error: ${error.message}\n`);
       return 1;
     }
   }
@@ -63,16 +63,16 @@ export class CliApplication {
       .join('\n');
 
     return [
-      'Uso:',
-      `  ${this.#name} <comando>`,
+      'Usage:',
+      `  ${this.#name} <command>`,
       '',
-      'Comandos:',
+      'Commands:',
       commands,
       '',
-      'Opcoes:',
-      '  -h, --help   Mostra ajuda',
-      '  -v, --version Mostra versao',
-      ...(this.#homepage ? ['', `Mais informacoes: ${this.#homepage}`] : []),
+      'Options:',
+      '  -h, --help    Show help',
+      '  -v, --version Show version',
+      ...(this.#homepage ? ['', `More information: ${this.#homepage}`] : []),
       '',
     ].join('\n');
   }

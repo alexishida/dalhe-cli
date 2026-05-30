@@ -1,86 +1,86 @@
 # dalhe-cli
 
-CLI para iniciar projetos com arquivos base do Dalhe.
+CLI for bootstrapping projects with Dalhe base files.
 
-## O que faz
+## What it does
 
-`dalhe init` copia template de `src/template/init` para diretorio atual, prepara estrutura inicial do projeto e executa `openspec init --tools claude,codex`.
+`dalhe init` copies the template from `src/template/init` into the current directory, prepares the initial project structure, and runs `openspec init --tools claude,codex`.
 
-`dalhe skill` lista, instala, remove e atualiza skills mantidas em `src/template/skills`, publicando-as globalmente para Codex e Claude Code.
-As skills oficiais nao usam prefixo.
+`dalhe skill` lists, installs, removes, and updates skills maintained in `src/template/skills`, publishing them globally for Codex and Claude Code.
+Official skills do not use prefixes.
 
-`dalhe update` atualiza a instalacao global do CLI e tambem atualiza o `OpenSpec`.
+`dalhe update` updates the global CLI installation and also updates `OpenSpec`.
 
-Hoje template inclui:
+Current template includes:
 
 - `AGENTS.md`
 - `CLAUDE.md`
 - `.ai-framework/DESIGN.md`
 - `.ai-framework/RULES.md`
 
-No comando `init`, se algum arquivo de destino ja existir, a execucao para e nada e sobrescrito.
+During `init`, if any destination file already exists, execution stops and nothing is overwritten.
 
-## Requisitos
+## Requirements
 
 - Node.js `>=22.0.0`
 
-## Instalacao
+## Installation
 
-Pacote no npm: https://www.npmjs.com/package/dalhe-cli
+Package on npm: https://www.npmjs.com/package/dalhe-cli
 
 ### Via npm
 
-Instale direto do npm:
+Install directly from npm:
 
 ```bash
 npm install -g dalhe-cli
 ```
 
-O `OpenSpec` e instalado automaticamente no primeiro `dalhe init`, caso ainda nao esteja disponivel no `PATH`.
+`OpenSpec` is installed automatically on the first `dalhe init` if it is not already available in `PATH`.
 
-### Via repositório Git interno
+### Via internal Git repository
 
-Instale direto do repositório:
+Install directly from repository:
 
 ```bash
 npm install -g git+https://github.com/alexishida/dalhe-cli.git
 ```
 
-O `OpenSpec` e instalado automaticamente no primeiro `dalhe init`, caso ainda nao esteja disponivel no `PATH`.
+`OpenSpec` is installed automatically on the first `dalhe init` if it is not already available in `PATH`.
 
-### Via codigo-fonte local
+### Via local source code
 
-No repositorio do projeto:
+Inside project repository:
 
 ```bash
 npm install -g .
 ```
 
-O `OpenSpec` e instalado automaticamente no primeiro `dalhe init`, caso ainda nao esteja disponivel no `PATH`.
+`OpenSpec` is installed automatically on the first `dalhe init` if it is not already available in `PATH`.
 
-## Inicio rapido
+## Quick start
 
-Entre na pasta onde deseja criar base do projeto:
+Go into folder where you want to create project base:
 
 ```bash
 dalhe init
 ```
 
-Exemplo:
+Example:
 
 ```bash
-mkdir meu-projeto
-cd ./meu-projeto
+mkdir my-project
+cd ./my-project
 dalhe init
 ```
 
-## Comandos
+## Commands
 
 ```bash
 dalhe init
 dalhe skill list
-dalhe skill install <nome-da-skill>
-dalhe skill uninstall <nome-da-skill>
+dalhe skill install <skill-name>
+dalhe skill uninstall <skill-name>
 dalhe skill update-all
 dalhe update
 dalhe --help
@@ -89,92 +89,92 @@ dalhe --version
 dalhe -v
 ```
 
-## Comportamento do `init`
+## `init` behavior
 
-- Copia todos os arquivos do template para pasta atual.
-- Cria diretorios necessarios automaticamente.
-- Bloqueia sobrescrita quando encontra conflito.
-- Se `openspec` nao estiver disponivel no `PATH`, executa `npm install -g @fission-ai/openspec@latest`.
-- Depois da copia, executa `openspec init --tools claude,codex` na pasta atual.
-- Esse modo evita menu interativo do OpenSpec e instala diretamente configuracoes para Claude Code e Codex.
-- Requer `npm` instalado para instalar `OpenSpec` automaticamente quando necessario.
-- Exibe total de arquivos copiados ao final.
+- Copies all template files into current folder.
+- Creates required directories automatically.
+- Blocks overwrites when a conflict is found.
+- If `openspec` is not available in `PATH`, runs `npm install -g @fission-ai/openspec@latest`.
+- After copying, runs `openspec init --tools claude,codex` in current folder.
+- This mode avoids the interactive OpenSpec menu and installs configuration directly for Claude Code and Codex.
+- Requires `npm` to be installed in order to install `OpenSpec` automatically when needed.
+- Shows total number of copied files at the end.
 
-## Estrutura do projeto
+## Project structure
 
-- `bin/dalhe.js`: ponto de entrada do CLI.
-- `src/commands`: comandos da aplicacao.
-- `src/core`: base da execucao e tratamento de erros.
-- `src/services`: servicos de apoio.
-- `src/template/init`: arquivos base copiados pelo comando `init`.
-- `src/template/skills`: arquivos auxiliares de skills mantidos no repositorio.
-- `test`: testes automatizados.
-- `.ai-framework/RULES.md`: regras oficiais do projeto, incluindo contexto tecnico e diretrizes obrigatorias para alteracoes.
+- `bin/dalhe.js`: CLI entry point.
+- `src/commands`: application commands.
+- `src/core`: execution base and error handling.
+- `src/services`: support services.
+- `src/template/init`: base files copied by `init`.
+- `src/template/skills`: skill helper files maintained in repository.
+- `test`: automated tests.
+- `.ai-framework/RULES.md`: official project rules, including technical context and mandatory change guidelines.
 
-## Comando `skill`
+## `skill` command
 
-### Listagem
+### Listing
 
-Lista todas as skills disponiveis em `src/template/skills`.
+Lists all skills available in `src/template/skills`.
 
-Skills incluidas atualmente:
+Currently included skills:
 
-- `rails8`: apoio para desenvolvimento, refatoracao e revisao de apps Rails 8.
-- `code-review`: revisao de qualidade, arquitetura e padroes em codigo Rails.
-- `security-audit`: auditoria de seguranca Rails com foco em OWASP, Brakeman e vulnerabilidades comuns.
+- `rails8`: support for development, refactoring, and review of Rails 8 apps.
+- `code-review`: review of quality, architecture, and patterns in Rails code.
+- `security-audit`: Rails security audit focused on OWASP, Brakeman, and common vulnerabilities.
 
 ```bash
 dalhe skill list
 ```
 
-### Instalacao
+### Installation
 
-Instala uma skill globalmente nos dois ambientes:
+Installs a skill globally in both environments:
 
-- Codex: copia pasta inteira da skill para `$CODEX_HOME/skills/<nome-da-skill>`.
-- Codex sem `CODEX_HOME`: usa `~/.codex/skills/<nome-da-skill>` no Linux e `%USERPROFILE%\.codex\skills\<nome-da-skill>` no Windows.
-- Claude Code: copia pasta inteira da skill para `~/.claude/skills/<nome-da-skill>` no Linux e `%USERPROFILE%\.claude\skills\<nome-da-skill>` no Windows.
-- Se a skill ja existir no destino global, a pasta daquela skill e substituida pela versao do template.
+- Codex: copies entire skill folder to `$CODEX_HOME/skills/<skill-name>`.
+- Codex without `CODEX_HOME`: uses `~/.codex/skills/<skill-name>` on Linux and `%USERPROFILE%\.codex\skills\<skill-name>` on Windows.
+- Claude Code: copies entire skill folder to `~/.claude/skills/<skill-name>` on Linux and `%USERPROFILE%\.claude\skills\<skill-name>` on Windows.
+- If skill already exists in global destination, that skill folder is replaced with current template version.
 
 ```bash
 dalhe skill install rails8
 ```
 
-### Desinstalacao
+### Uninstallation
 
-Remove a skill dos dois destinos globais.
+Removes skill from both global destinations.
 
 ```bash
 dalhe skill uninstall rails8
 ```
 
-### Atualizacao em lote
+### Bulk update
 
-Reinstala todas as skills deste CLI que ja estejam instaladas em pelo menos um destino gerenciado, sincronizando a versao atual do template para Codex e Claude Code.
+Reinstalls all skills from this CLI that are already installed in at least one managed destination, syncing current template version to Codex and Claude Code.
 
 ```bash
 dalhe skill update-all
 ```
 
-## Comando `update`
+## `update` command
 
-Atualiza o CLI globalmente a partir do repositorio oficial e sincroniza o `OpenSpec`:
+Updates CLI globally from official repository and syncs `OpenSpec`:
 
 ```bash
 dalhe update
 ```
 
-Comportamento:
+Behavior:
 
-- Executa `npm install -g git+https://github.com/alexishida/dalhe-cli.git`.
-- Em seguida executa `npm install -g @fission-ai/openspec@latest`.
-- No Windows usa `npm.cmd`.
-- No Linux usa `npm`.
-- Requer `npm` instalado e permissao para atualizar pacote global.
+- Runs `npm install -g git+https://github.com/alexishida/dalhe-cli.git`.
+- Then runs `npm install -g @fission-ai/openspec@latest`.
+- Uses `npm.cmd` on Windows.
+- Uses `npm` on Linux.
+- Requires `npm` to be installed and permission to update global packages.
 
-## Desenvolvimento local
+## Local development
 
-Toda alteracao do projeto deve manter este `README.md` atualizado sempre que houver impacto em comportamento, uso, comandos, fluxo, estrutura, requisitos ou contexto relevante da ferramenta.
+Any project change must keep this `README.md` updated whenever there is impact on behavior, usage, commands, flow, structure, requirements, or any relevant tool context.
 
 ```bash
 npm install
@@ -182,21 +182,21 @@ npm test
 node ./bin/dalhe.js --help
 ```
 
-Para testar fluxo completo sem instalar globalmente:
+To test full flow without installing globally:
 
 ```bash
 node ./bin/dalhe.js init
 ```
 
-Neste caso, garanta que `npm` esteja instalado e disponivel no `PATH`, para que o CLI possa instalar o `OpenSpec` automaticamente quando necessario.
+In this case, make sure `npm` is installed and available in `PATH`, so CLI can install `OpenSpec` automatically when needed.
 
-## Licenca
+## License
 
 MIT
 
-## Atualizar pacote no npm
+## Publish package to npm
 
-Se precisar renovar autenticacao no npm antes de publicar:
+If you need to renew npm authentication before publishing:
 
 ```bash
 npm logout

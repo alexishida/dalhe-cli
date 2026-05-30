@@ -12,7 +12,7 @@ test('runs openspec after copying template', async () => {
       async copy() {
         calls.push('copy');
         return {
-          targetDir: '/tmp/projeto',
+          targetDir: '/tmp/project',
           filesCopied: 3,
         };
       },
@@ -34,10 +34,10 @@ test('runs openspec after copying template', async () => {
 
   assert.deepEqual(calls, [
     'copy',
-    ['openspec', { targetDir: '/tmp/projeto' }],
+        ['openspec', { targetDir: '/tmp/project' }],
   ]);
-  assert.match(result.message, /Projeto iniciado em \/tmp\/projeto/);
-  assert.match(result.message, /Arquivos copiados: 3/);
+  assert.match(result.message, /Project initialized in \/tmp\/project/);
+  assert.match(result.message, /Files copied: 3/);
   assert.match(result.message, /OpenSpec: openspec init --tools claude,codex/);
 });
 
@@ -46,7 +46,7 @@ test('prints openspec install command when initializer installs openspec', async
     templateCopier: {
       async copy() {
         return {
-          targetDir: '/tmp/projeto',
+          targetDir: '/tmp/project',
           filesCopied: 3,
         };
       },
@@ -70,7 +70,7 @@ test('prints openspec install command when initializer installs openspec', async
 
   const result = await command.execute([]);
 
-  assert.match(result.message, /OpenSpec instalado: npm install -g @fission-ai\/openspec@latest/);
+  assert.match(result.message, /OpenSpec installed: npm install -g @fission-ai\/openspec@latest/);
   assert.match(result.message, /OpenSpec: openspec init --tools claude,codex/);
 });
 
@@ -79,14 +79,14 @@ test('reports copied files when openspec init fails after copy', async () => {
     templateCopier: {
       async copy() {
         return {
-          targetDir: '/tmp/projeto',
+          targetDir: '/tmp/project',
           filesCopied: 3,
         };
       },
     },
     openSpecInitializer: {
       async initialize() {
-        throw new CliError('Nao foi possivel executar openspec.', {
+        throw new CliError('Could not run openspec.', {
           code: 'OPENSPEC_NOT_FOUND',
           exitCode: 1,
         });
@@ -102,8 +102,8 @@ test('reports copied files when openspec init fails after copy', async () => {
       error instanceof CliError &&
       error.code === 'OPENSPEC_NOT_FOUND' &&
       error.exitCode === 1 &&
-      /Projeto copiado em \/tmp\/projeto, mas falha ao executar openspec init\./.test(error.message) &&
-      /Arquivos copiados: 3/.test(error.message) &&
-      /Nao foi possivel executar openspec\./.test(error.message),
+      /Project copied to \/tmp\/project, but failed to run openspec init\./.test(error.message) &&
+      /Files copied: 3/.test(error.message) &&
+      /Could not run openspec\./.test(error.message),
   );
 });

@@ -13,22 +13,22 @@ export class InitCommand {
   }
 
   get description() {
-    return 'Inicia projeto e executa OpenSpec.';
+    return 'Initializes project and runs OpenSpec.';
   }
 
   helpText() {
     return [
-      'Uso:',
+      'Usage:',
       '  dalhe init',
       '',
-      'Copia os arquivos de src/template/init e executa openspec init --tools claude,codex no diretorio atual.',
+      'Copies files from src/template/init and runs openspec init --tools claude,codex in current directory.',
       '',
     ].join('\n');
   }
 
   async execute(args) {
     if (args.length > 0) {
-      throw new CliError(`Argumento invalido para init: ${args.join(' ')}`, {
+      throw new CliError(`Invalid argument for init: ${args.join(' ')}`, {
         code: 'INVALID_ARGUMENT',
       });
     }
@@ -41,8 +41,8 @@ export class InitCommand {
 
     return {
       message: [
-        `Projeto iniciado em ${result.targetDir}`,
-        `Arquivos copiados: ${result.filesCopied}`,
+        `Project initialized in ${result.targetDir}`,
+        `Files copied: ${result.filesCopied}`,
         ...this.#openSpecInstallMessage(openSpecResult),
         `OpenSpec: ${openSpecResult.command} ${openSpecResult.args.join(' ')}`,
         '',
@@ -59,8 +59,8 @@ export class InitCommand {
       if (error instanceof CliError) {
         throw new CliError(
           [
-            `Projeto copiado em ${result.targetDir}, mas falha ao executar openspec init.`,
-            `Arquivos copiados: ${result.filesCopied}`,
+            `Project copied to ${result.targetDir}, but failed to run openspec init.`,
+            `Files copied: ${result.filesCopied}`,
             error.message,
           ].join('\n'),
           {
@@ -79,6 +79,6 @@ export class InitCommand {
       return [];
     }
 
-    return [`OpenSpec instalado: ${result.install.command} ${result.install.args.join(' ')}`];
+    return [`OpenSpec installed: ${result.install.command} ${result.install.args.join(' ')}`];
   }
 }

@@ -44,7 +44,7 @@ export class SelfUpdater {
 
   #installTarget() {
     if (!this.repositoryUrl) {
-      throw new CliError('Repositorio oficial do dalhe-cli nao configurado.', {
+      throw new CliError('Official dalhe-cli repository is not configured.', {
         code: 'MISSING_REPOSITORY_URL',
       });
     }
@@ -82,7 +82,7 @@ function defaultRunCommand({ command, args, env = {} }) {
       if (error.code === 'ENOENT') {
         reject(
           new CliError(
-            `Nao foi possivel executar ${command}. Verifique se o npm esta instalado e disponivel no PATH.`,
+            `Could not run ${command}. Make sure npm is installed and available in PATH.`,
             { code: 'NPM_NOT_FOUND' },
           ),
         );
@@ -90,7 +90,7 @@ function defaultRunCommand({ command, args, env = {} }) {
       }
 
       reject(
-        new CliError(`Falha ao executar ${command}: ${error.message}`, {
+        new CliError(`Failed to run ${command}: ${error.message}`, {
           code: 'UPDATE_FAILED',
         }),
       );
@@ -102,10 +102,10 @@ function defaultRunCommand({ command, args, env = {} }) {
         return;
       }
 
-      const details = [stderr.trim(), stdout.trim()].find(Boolean) || `npm retornou codigo ${code}`;
+      const details = [stderr.trim(), stdout.trim()].find(Boolean) || `npm returned code ${code}`;
 
       reject(
-        new CliError(`Falha ao atualizar dalhe-cli.\n${details}`, {
+        new CliError(`Failed to update dalhe-cli.\n${details}`, {
           code: 'UPDATE_FAILED',
           exitCode: code ?? 1,
         }),

@@ -25,11 +25,11 @@ test('prints help with --help and -h', async () => {
   const longOption = runCli(['--help']);
   const shortOption = runCli(['-h']);
 
-  assert.match(longOption.stdout, /Uso:/);
-  assert.match(longOption.stdout, /Comandos:/);
+  assert.match(longOption.stdout, /Usage:/);
+  assert.match(longOption.stdout, /Commands:/);
   assert.match(longOption.stdout, /skill/);
   assert.match(longOption.stdout, /update/);
-  assert.match(longOption.stdout, /Mais informacoes: https:\/\/github\.com\/alexishida\/dalhe-cli/);
+  assert.match(longOption.stdout, /More information: https:\/\/github\.com\/alexishida\/dalhe-cli/);
   assert.doesNotMatch(longOption.stdout, /^dalhe /);
   assert.equal(shortOption.stdout, longOption.stdout);
   assert.equal(longOption.stderr, '');
@@ -61,10 +61,10 @@ test('lists available skills', async () => {
       },
     });
 
-    assert.match(result.stdout, /Skills disponiveis:/);
+    assert.match(result.stdout, /Available skills:/);
     assert.match(result.stdout, /rails8/);
-    assert.doesNotMatch(result.stdout, /Codex: nao instalada/);
-    assert.doesNotMatch(result.stdout, /Claude Code: nao instalada/);
+    assert.doesNotMatch(result.stdout, /Codex: not found/);
+    assert.doesNotMatch(result.stdout, /Claude Code: not found/);
     assert.doesNotMatch(result.stdout, /\/codex-home\/skills\/rails8/);
     assert.doesNotMatch(result.stdout, /\/\.claude\/skills\/rails8/);
     assert.equal(result.stderr, '');
@@ -90,8 +90,8 @@ test('initializes project and runs openspec init', async () => {
       env,
     });
 
-    assert.match(result.stdout, /Projeto iniciado em/);
-    assert.match(result.stdout, /Arquivos copiados: \d+/);
+    assert.match(result.stdout, /Project initialized in/);
+    assert.match(result.stdout, /Files copied: \d+/);
     assert.match(result.stdout, new RegExp(`OpenSpec: ${openspecCommand.replace('.', '\\.')} init --tools claude,codex`));
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
@@ -121,7 +121,7 @@ test('updates all installed skills', async () => {
 
     const result = runCli(['skill', 'update-all'], { env });
 
-    assert.match(result.stdout, /1 skill atualizada globalmente\./);
+    assert.match(result.stdout, /1 skill updated globally\./);
     assert.match(result.stdout, /- rails8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);

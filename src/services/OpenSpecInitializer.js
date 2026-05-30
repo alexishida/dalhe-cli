@@ -91,7 +91,7 @@ function defaultRunCommand({ command, args, cwd }) {
       if (error.code === 'ENOENT') {
         reject(
           new CliError(
-            'Nao foi possivel executar openspec. Verifique se o OpenSpec esta instalado e disponivel no PATH.',
+            'Could not run openspec. Make sure OpenSpec is installed and available in PATH.',
             { code: 'OPENSPEC_NOT_FOUND' },
           ),
         );
@@ -99,7 +99,7 @@ function defaultRunCommand({ command, args, cwd }) {
       }
 
       reject(
-        new CliError(`Falha ao executar openspec init: ${error.message}`, {
+        new CliError(`Failed to run openspec init: ${error.message}`, {
           code: 'OPENSPEC_INIT_FAILED',
         }),
       );
@@ -111,10 +111,10 @@ function defaultRunCommand({ command, args, cwd }) {
         return;
       }
 
-      const details = [stderr.trim(), stdout.trim()].find(Boolean) || `openspec retornou codigo ${code}`;
+      const details = [stderr.trim(), stdout.trim()].find(Boolean) || `openspec returned code ${code}`;
 
       reject(
-        new CliError(`Falha ao executar openspec init.\n${details}`, {
+        new CliError(`Failed to run openspec init.\n${details}`, {
           code: 'OPENSPEC_INIT_FAILED',
           exitCode: code ?? 1,
         }),
@@ -144,7 +144,7 @@ function defaultInstallCommand({ command, args }) {
       if (error.code === 'ENOENT') {
         reject(
           new CliError(
-            `Nao foi possivel executar ${command}. Verifique se o npm esta instalado e disponivel no PATH.`,
+            `Could not run ${command}. Make sure npm is installed and available in PATH.`,
             { code: 'NPM_NOT_FOUND' },
           ),
         );
@@ -152,7 +152,7 @@ function defaultInstallCommand({ command, args }) {
       }
 
       reject(
-        new CliError(`Falha ao executar ${command}: ${error.message}`, {
+        new CliError(`Failed to run ${command}: ${error.message}`, {
           code: 'OPENSPEC_INSTALL_FAILED',
         }),
       );
@@ -164,10 +164,10 @@ function defaultInstallCommand({ command, args }) {
         return;
       }
 
-      const details = [stderr.trim(), stdout.trim()].find(Boolean) || `npm retornou codigo ${code}`;
+      const details = [stderr.trim(), stdout.trim()].find(Boolean) || `npm returned code ${code}`;
 
       reject(
-        new CliError(`Falha ao instalar OpenSpec automaticamente.\n${details}`, {
+        new CliError(`Failed to install OpenSpec automatically.\n${details}`, {
           code: 'OPENSPEC_INSTALL_FAILED',
           exitCode: code ?? 1,
         }),

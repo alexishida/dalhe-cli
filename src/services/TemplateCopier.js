@@ -36,7 +36,7 @@ export class TemplateCopier {
     const info = await stat(directory).catch(() => null);
 
     if (!info?.isDirectory()) {
-      throw new CliError(`Pasta de template nao encontrada: ${directory}`, {
+      throw new CliError(`Template directory not found: ${directory}`, {
         code: 'TEMPLATE_NOT_FOUND',
       });
     }
@@ -62,7 +62,7 @@ export class TemplateCopier {
           continue;
         }
 
-        throw new CliError(`Template contem entrada nao suportada: ${relative(sourceDir, sourcePath)}`, {
+        throw new CliError(`Template contains unsupported entry: ${relative(sourceDir, sourcePath)}`, {
           code: 'UNSUPPORTED_TEMPLATE_ENTRY',
         });
       }
@@ -99,7 +99,7 @@ export class TemplateCopier {
     if (conflicts.length > 0) {
       throw new CliError(
         [
-          'Arquivos ja existem no destino. Remova ou renomeie antes de executar:',
+          'Files already exist in destination. Remove or rename them before running:',
           ...conflicts.map((path) => `- ${path}`),
         ].join('\n'),
         { code: 'TARGET_CONFLICT' },

@@ -72,7 +72,7 @@ test('fails when repository url is missing', async () => {
     runCommand: async () => {},
   });
 
-  await assert.rejects(() => updater.update(), /Repositorio oficial do dalhe-cli nao configurado/);
+  await assert.rejects(() => updater.update(), /Official dalhe-cli repository is not configured/);
 });
 
 test('update command prints executed install command', async () => {
@@ -95,7 +95,7 @@ test('update command prints executed install command', async () => {
 
   const result = await command.execute([]);
 
-  assert.match(result.message, /dalhe-cli atualizado com sucesso/);
+  assert.match(result.message, /dalhe-cli updated successfully/);
   assert.match(result.message, /OpenSpec: @fission-ai\/openspec@latest/);
   assert.match(result.message, /- npm install -g git\+https:\/\/github\.com\/alexishida\/dalhe-cli\.git/);
   assert.match(result.message, /- npm install -g @fission-ai\/openspec@latest/);
@@ -112,6 +112,6 @@ test('update command rejects extra arguments', async () => {
 
   await assert.rejects(
     () => command.execute(['agora']),
-    (error) => error instanceof CliError && /Argumento invalido para update/.test(error.message),
+    (error) => error instanceof CliError && /Invalid argument for update/.test(error.message),
   );
 });

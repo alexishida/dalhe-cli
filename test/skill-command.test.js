@@ -29,5 +29,5 @@ test('skill list shows only skill names', async () => {
 
   const result = await command.execute(['list']);
 
-  assert.equal(result.message, ['Skills disponiveis:', '- rails8', ''].join('\n'));
+  assert.equal(result.message, ['Available skills:', '- rails8', ''].join('\n'));
 });

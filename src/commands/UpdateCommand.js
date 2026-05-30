@@ -10,22 +10,22 @@ export class UpdateCommand {
   }
 
   get description() {
-    return 'Atualiza o dalhe-cli e o OpenSpec.';
+    return 'Updates dalhe-cli and OpenSpec.';
   }
 
   helpText() {
     return [
-      'Uso:',
+      'Usage:',
       '  dalhe update',
       '',
-      'Executa atualizacao global do dalhe-cli e do OpenSpec via npm.',
+      'Runs a global update for dalhe-cli and OpenSpec via npm.',
       '',
     ].join('\n');
   }
 
   async execute(args) {
     if (args.length > 0) {
-      throw new CliError(`Argumento invalido para update: ${args.join(' ')}`, {
+      throw new CliError(`Invalid argument for update: ${args.join(' ')}`, {
         code: 'INVALID_ARGUMENT',
       });
     }
@@ -34,10 +34,10 @@ export class UpdateCommand {
 
     return {
       message: [
-        'dalhe-cli atualizado com sucesso.',
-        `Origem: ${result.target}`,
+        'dalhe-cli updated successfully.',
+        `Source: ${result.target}`,
         `OpenSpec: ${result.openspec.target}`,
-        'Comandos executados:',
+        'Executed commands:',
         `- ${result.command} ${result.args.join(' ')}`,
         `- ${result.openspec.command} ${result.openspec.args.join(' ')}`,
         '',

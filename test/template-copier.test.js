@@ -38,7 +38,7 @@ test('fails before overwriting existing target file', async () => {
 
     await assert.rejects(
       () => new TemplateCopier().copy({ sourceDir, targetDir }),
-      /Arquivos ja existem/,
+      /Files already exist/,
     );
 
     assert.equal(await readFile(join(targetDir, 'AGENTS.md'), 'utf8'), 'old');

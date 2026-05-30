@@ -10,18 +10,18 @@ export class SkillCommand {
   }
 
   get description() {
-    return 'Lista, instala, remove e atualiza skills globais.';
+    return 'Lists, installs, removes, and updates global skills.';
   }
 
   helpText() {
     return [
-      'Uso:',
+      'Usage:',
       '  dalhe skill list',
-      '  dalhe skill install <nome-da-skill>',
-      '  dalhe skill uninstall <nome-da-skill>',
+      '  dalhe skill install <skill-name>',
+      '  dalhe skill uninstall <skill-name>',
       '  dalhe skill update-all',
       '',
-      'Gerencia instalacao global de skills no Codex e no Claude Code.',
+      'Manages global skill installation for Codex and Claude Code.',
       '',
     ].join('\n');
   }
@@ -59,7 +59,7 @@ export class SkillCommand {
 
       default:
         throw new CliError(
-          `Subcomando invalido para skill: ${subcommand || '(vazio)'}. Use list, install, uninstall ou update-all.`,
+          `Invalid skill subcommand: ${subcommand || '(empty)'}. Use list, install, uninstall, or update-all.`,
           { code: 'INVALID_SUBCOMMAND' },
         );
     }
@@ -67,11 +67,11 @@ export class SkillCommand {
 
   #listMessage(skills) {
     if (skills.length === 0) {
-      return 'Nenhuma skill disponivel.\n';
+      return 'No skills available.\n';
     }
 
     return [
-      'Skills disponiveis:',
+      'Available skills:',
       ...skills.flatMap((skill) => this.#skillListLines(skill)),
       '',
     ].join('\n');
@@ -83,10 +83,10 @@ export class SkillCommand {
 
   #installMessage(result) {
     return [
-      `Skill "${result.name}" instalada globalmente.`,
+      `Skill "${result.name}" installed globally.`,
       `Codex: ${result.codexDir}`,
       `Claude Code: ${result.claudeDir}`,
-      `Claude Code /comando: ${result.claudeCommandFile}`,
+      `Claude Code /command: ${result.claudeCommandFile}`,
       '',
     ].join('\n');
   }
@@ -96,22 +96,22 @@ export class SkillCommand {
 
     return [
       removed
-        ? `Skill "${result.name}" removida globalmente.`
-        : `Skill "${result.name}" nao estava instalada globalmente.`,
-      `Codex: ${result.removedFromCodex ? 'removida' : 'nao encontrada'} (${result.codexDir})`,
-      `Claude Code: ${result.removedFromClaude ? 'removida' : 'nao encontrada'} (${result.claudeDir})`,
-      `Claude Code /comando: ${result.removedCommand ? 'removido' : 'nao encontrado'} (${result.claudeCommandFile})`,
+        ? `Skill "${result.name}" removed globally.`
+        : `Skill "${result.name}" was not installed globally.`,
+      `Codex: ${result.removedFromCodex ? 'removed' : 'not found'} (${result.codexDir})`,
+      `Claude Code: ${result.removedFromClaude ? 'removed' : 'not found'} (${result.claudeDir})`,
+      `Claude Code /command: ${result.removedCommand ? 'removed' : 'not found'} (${result.claudeCommandFile})`,
       '',
     ].join('\n');
   }
 
   #updateAllMessage(result) {
     if (result.totalUpdated === 0) {
-      return 'Nenhuma skill instalada para atualizar.\n';
+      return 'No installed skills to update.\n';
     }
 
     return [
-      `${result.totalUpdated} skill${result.totalUpdated > 1 ? 's' : ''} atualizada${result.totalUpdated > 1 ? 's' : ''} globalmente.`,
+      `${result.totalUpdated} skill${result.totalUpdated > 1 ? 's' : ''} updated globally.`,
       ...result.updatedSkills.map((skill) => `- ${skill.name}`),
       '',
     ].join('\n');
@@ -122,7 +122,7 @@ export class SkillCommand {
       return;
     }
 
-    throw new CliError(`Informe nome da skill para "${subcommand}".`, {
+    throw new CliError(`Provide a skill name for "${subcommand}".`, {
       code: 'MISSING_SKILL_NAME',
     });
   }
@@ -132,7 +132,7 @@ export class SkillCommand {
       return;
     }
 
-    throw new CliError(`Argumentos invalidos para "skill ${subcommand}": ${rest.join(' ')}`, {
+    throw new CliError(`Invalid arguments for "skill ${subcommand}": ${rest.join(' ')}`, {
       code: 'INVALID_ARGUMENT',
     });
   }
@@ -142,7 +142,7 @@ export class SkillCommand {
       return;
     }
 
-    throw new CliError(`Argumento invalido para "skill list": ${skillName}`, {
+    throw new CliError(`Invalid argument for "skill list": ${skillName}`, {
       code: 'INVALID_ARGUMENT',
     });
   }
@@ -154,7 +154,7 @@ export class SkillCommand {
       return;
     }
 
-    throw new CliError(`Argumentos invalidos para "skill ${subcommand}": ${definedArgs.join(' ')}`, {
+    throw new CliError(`Invalid arguments for "skill ${subcommand}": ${definedArgs.join(' ')}`, {
       code: 'INVALID_ARGUMENT',
     });
   }

@@ -1,0 +1,50 @@
+# Starter electron-builder config. Replace appId / productName / publish.
+appId: com.example.myapp
+productName: My App
+directories:
+  buildResources: build
+
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintrc,.eslintrc.js,.prettierrc,.prettierignore}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+
+# Runtime assets that must live outside the asar archive:
+# extraResources:
+#   - from: resources/
+#     to: resources/
+
+asar: true
+
+win:
+  target: nsis
+  artifactName: ${productName}-${version}-setup.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+  # Notarization (requires Apple Developer ID + APPLE_ID/APPLE_APP_SPECIFIC_PASSWORD env):
+  # notarize: true
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Utility
+  maintainer: you@example.com
+
+# Auto-update target (electron-updater). Example for GitHub Releases:
+# publish:
+#   provider: github
+#   owner: your-user
+#   repo: your-repo

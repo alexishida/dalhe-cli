@@ -196,6 +196,11 @@ MIT
 
 ## Atualizar pacote no npm
 
+Se precisar renovar autenticacao no npm antes de publicar:
+
 ```bash
+npm logout
+npm login
+npm whoami
 npm publish
 ```

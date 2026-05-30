@@ -126,6 +126,49 @@ test('installs skill globally for Codex and Claude Code', async () => {
   }
 });
 
+test('installs all skills globally for Codex and Claude Code', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-skill-install-all-'));
+  const templateRootDir = join(workspace, 'templates');
+  const userHomeDir = join(workspace, 'home');
+  const codexHomeDir = join(workspace, 'codex-home');
+
+  try {
+    await mkdir(templateRootDir, { recursive: true });
+    await createSkillTemplate(templateRootDir, 'nodejs-dev', {
+      references: {
+        'references/guide.md': '# Node guide\n',
+      },
+    });
+    await createSkillTemplate(templateRootDir, 'pure-ruby', {
+      references: {
+        'references/guide.md': '# Ruby guide\n',
+      },
+    });
+
+    const manager = new SkillManager({
+      templateRootDir,
+      env: { CODEX_HOME: codexHomeDir },
+      userHomeDir,
+    });
+
+    const result = await manager.installAll();
+
+    assert.equal(result.totalInstalled, 2);
+    assert.deepEqual(
+      result.installedSkills.map((skill) => skill.name),
+      ['nodejs-dev', 'pure-ruby'],
+    );
+    assert.equal(await exists(join(codexHomeDir, 'skills', 'nodejs-dev', 'SKILL.md')), true);
+    assert.equal(await exists(join(codexHomeDir, 'skills', 'pure-ruby', 'SKILL.md')), true);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'skills', 'nodejs-dev', 'SKILL.md')), true);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'skills', 'pure-ruby', 'SKILL.md')), true);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'commands', 'nodejs-dev.md')), true);
+    assert.equal(await exists(join(userHomeDir, '.claude', 'commands', 'pure-ruby.md')), true);
+  } finally {
+    await rm(workspace, { force: true, recursive: true });
+  }
+});
+
 test('uninstalls skill globally from Codex and Claude Code', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-skill-uninstall-'));
   const templateRootDir = join(workspace, 'templates');

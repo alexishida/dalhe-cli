@@ -37,27 +37,20 @@ export class SkillManager {
 
   async install(skillName) {
     const sourceDir = await this.#skillSourceDir(skillName);
-    const codexDir = this.#codexSkillDir(skillName);
-    const claudeDir = this.#claudeSkillDir(skillName);
-    const claudeCommandFile = this.#claudeCommandFile(skillName);
+    return this.#installSkill({ skillName, sourceDir });
+  }
 
-    await rm(codexDir, { force: true, recursive: true });
-    await mkdir(this.#codexSkillsDir(), { recursive: true });
-    await cp(sourceDir, codexDir, { recursive: true });
+  async installAll() {
+    const skills = await this.list();
+    const installedSkills = [];
 
-    await rm(claudeDir, { force: true, recursive: true });
-    await mkdir(this.#claudeSkillsDir(), { recursive: true });
-    await cp(sourceDir, claudeDir, { recursive: true });
-
-    await mkdir(this.#claudeCommandsDir(), { recursive: true });
-    await writeFile(claudeCommandFile, this.#commandFileContent(skillName));
+    for (const skill of skills) {
+      installedSkills.push(await this.#installSkill({ skillName: skill.name, sourceDir: skill.sourceDir }));
+    }
 
     return {
-      name: skillName,
-      sourceDir,
-      codexDir,
-      claudeDir,
-      claudeCommandFile,
+      totalInstalled: installedSkills.length,
+      installedSkills,
     };
   }
 
@@ -185,6 +178,31 @@ export class SkillManager {
 
   #commandFileContent(skillName) {
     return `Invoke the \`${skillName}\` skill. $ARGUMENTS\n`;
+  }
+
+  async #installSkill({ skillName, sourceDir }) {
+    const codexDir = this.#codexSkillDir(skillName);
+    const claudeDir = this.#claudeSkillDir(skillName);
+    const claudeCommandFile = this.#claudeCommandFile(skillName);
+
+    await rm(codexDir, { force: true, recursive: true });
+    await mkdir(this.#codexSkillsDir(), { recursive: true });
+    await cp(sourceDir, codexDir, { recursive: true });
+
+    await rm(claudeDir, { force: true, recursive: true });
+    await mkdir(this.#claudeSkillsDir(), { recursive: true });
+    await cp(sourceDir, claudeDir, { recursive: true });
+
+    await mkdir(this.#claudeCommandsDir(), { recursive: true });
+    await writeFile(claudeCommandFile, this.#commandFileContent(skillName));
+
+    return {
+      name: skillName,
+      sourceDir,
+      codexDir,
+      claudeDir,
+      claudeCommandFile,
+    };
   }
 
   #isInstalled(skill) {

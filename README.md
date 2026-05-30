@@ -80,6 +80,7 @@ dalhe init
 dalhe init
 dalhe skill list
 dalhe skill install <skill-name>
+dalhe skill install-all
 dalhe skill uninstall <skill-name>
 dalhe skill update-all
 dalhe update
@@ -120,8 +121,9 @@ Lists all skills available in `src/template/skills`.
 Currently included skills:
 
 - `rails8`: support for development, refactoring, and review of Rails 8 apps.
-- `code-review`: review of quality, architecture, and patterns in Rails code.
-- `security-audit`: Rails security audit focused on OWASP, Brakeman, and common vulnerabilities.
+- `rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
+- `nodejs-dev`: support for developing and maintaining Node.js projects.
+- `pure-ruby`: support for developing and maintaining pure Ruby projects.
 
 ```bash
 dalhe skill list
@@ -138,6 +140,14 @@ Installs a skill globally in both environments:
 
 ```bash
 dalhe skill install rails8
+```
+
+### Install all
+
+Installs all skills shipped with this CLI globally for both Codex and Claude Code.
+
+```bash
+dalhe skill install-all
 ```
 
 ### Uninstallation

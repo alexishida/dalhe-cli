@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, parse, resolve } from 'node:path';
 import test from 'node:test';
 import packageJson from '../package.json' with { type: 'json' };
 import { DEFAULT_OPENSPEC_TOOLS } from '../src/services/OpenSpecInitializer.js';
@@ -109,6 +109,7 @@ test('updates all installed skills', async () => {
   const templateSkillFile = resolve(process.cwd(), 'src', 'template', 'skills', 'rails8', 'SKILL.md');
   const env = {
     HOME: fakeHome,
+    USERPROFILE: fakeHome,
     CODEX_HOME: codexHome,
   };
 
@@ -128,6 +129,35 @@ test('updates all installed skills', async () => {
     assert.equal(
       await readFile(installedSkillFile, 'utf8'),
       await readFile(templateSkillFile, 'utf8'),
+    );
+  } finally {
+    await rm(fakeHome, { force: true, recursive: true });
+  }
+});
+
+test('installs all available skills', async () => {
+  const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-install-all-'));
+  const codexHome = resolve(fakeHome, 'codex-home');
+  const parsedHome = parse(fakeHome);
+  const env = {
+    HOME: fakeHome,
+    USERPROFILE: fakeHome,
+    HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
+    HOMEPATH: fakeHome.slice(parsedHome.root.length - 1),
+    CODEX_HOME: codexHome,
+  };
+
+  try {
+    const result = runCli(['skill', 'install-all'], { env });
+
+    assert.match(result.stdout, /\d+ skills installed globally\./);
+    assert.match(result.stdout, /- rails8/);
+    assert.equal(result.stderr, '');
+    assert.equal(result.status, 0);
+    assert.equal((await readFile(join(codexHome, 'skills', 'rails8', 'SKILL.md'), 'utf8')).length > 0, true);
+    assert.equal(
+      (await readFile(join(fakeHome, '.claude', 'skills', 'rails8', 'SKILL.md'), 'utf8')).length > 0,
+      true,
     );
   } finally {
     await rm(fakeHome, { force: true, recursive: true });

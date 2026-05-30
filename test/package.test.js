@@ -19,8 +19,10 @@ test('npm pack includes package.json and skill templates', async () => {
 
     assert.equal(result.status, 0, output);
     assert.match(output, /package\.json/);
-    assert.match(output, /src\/template\/skills\/security-audit\/SKILL\.md/);
+    assert.match(output, /src\/template\/skills\/rails-code-audit\/SKILL\.md/);
     assert.match(output, /src\/template\/skills\/code-review\/SKILL\.md/);
+    assert.match(output, /src\/template\/skills\/nodejs-dev\/SKILL\.md/);
+    assert.match(output, /src\/template\/skills\/pure-ruby\/SKILL\.md/);
   } finally {
     await rm(cacheDir, { force: true, recursive: true });
   }

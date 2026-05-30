@@ -1,6 +1,6 @@
 {
   "name": "dalhe-cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "CLI para iniciar projetos com arquivos base do Dalhe.",
   "author": "Alex Ishida <alexishida@gmail.com>",
   "license": "MIT",

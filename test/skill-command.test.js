@@ -31,3 +31,23 @@ test('skill list shows only skill names', async () => {
 
   assert.equal(result.message, ['Available skills:', '- rails8', ''].join('\n'));
 });
+
+test('skill install-all shows installed skill names', async () => {
+  const command = new SkillCommand({
+    skillManager: {
+      async installAll() {
+        return {
+          totalInstalled: 2,
+          installedSkills: [{ name: 'nodejs-dev' }, { name: 'pure-ruby' }],
+        };
+      },
+    },
+  });
+
+  const result = await command.execute(['install-all']);
+
+  assert.equal(
+    result.message,
+    ['2 skills installed globally.', '- nodejs-dev', '- pure-ruby', ''].join('\n'),
+  );
+});

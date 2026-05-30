@@ -1,6 +1,6 @@
 {
   "name": "dalhe-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI para iniciar projetos com arquivos base do Dalhe.",
   "author": "Alex Ishida <alexishida@gmail.com>",
   "license": "MIT",
@@ -29,7 +29,7 @@
     "url": "https://github.com/alexishida/dalhe-cli/issues"
   },
   "engines": {
-    "node": ">=25.4.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "start": "node ./bin/dalhe.js",

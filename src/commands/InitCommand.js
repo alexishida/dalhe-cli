@@ -1,8 +1,9 @@
 import { CliError } from '../core/CliError.js';
 
 export class InitCommand {
-  constructor({ templateCopier, templateDir, targetDir }) {
+  constructor({ templateCopier, openSpecInitializer, templateDir, targetDir }) {
     this.templateCopier = templateCopier;
+    this.openSpecInitializer = openSpecInitializer;
     this.templateDir = templateDir;
     this.targetDir = targetDir;
   }
@@ -12,7 +13,7 @@ export class InitCommand {
   }
 
   get description() {
-    return 'Inicia projeto copiando arquivos base.';
+    return 'Inicia projeto e executa OpenSpec.';
   }
 
   helpText() {
@@ -20,7 +21,7 @@ export class InitCommand {
       'Uso:',
       '  dalhe init',
       '',
-      'Copia os arquivos de src/template/init para o diretorio atual.',
+      'Copia os arquivos de src/template/init e executa openspec init --tools claude,codex no diretorio atual.',
       '',
     ].join('\n');
   }
@@ -36,13 +37,48 @@ export class InitCommand {
       sourceDir: this.templateDir,
       targetDir: this.targetDir,
     });
+    const openSpecResult = await this.#initializeOpenSpec(result);
 
     return {
       message: [
         `Projeto iniciado em ${result.targetDir}`,
         `Arquivos copiados: ${result.filesCopied}`,
+        ...this.#openSpecInstallMessage(openSpecResult),
+        `OpenSpec: ${openSpecResult.command} ${openSpecResult.args.join(' ')}`,
         '',
       ].join('\n'),
     };
+  }
+
+  async #initializeOpenSpec(result) {
+    try {
+      return await this.openSpecInitializer.initialize({
+        targetDir: result.targetDir,
+      });
+    } catch (error) {
+      if (error instanceof CliError) {
+        throw new CliError(
+          [
+            `Projeto copiado em ${result.targetDir}, mas falha ao executar openspec init.`,
+            `Arquivos copiados: ${result.filesCopied}`,
+            error.message,
+          ].join('\n'),
+          {
+            code: error.code,
+            exitCode: error.exitCode,
+          },
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  #openSpecInstallMessage(result) {
+    if (!result.install) {
+      return [];
+    }
+
+    return [`OpenSpec instalado: ${result.install.command} ${result.install.args.join(' ')}`];
   }
 }

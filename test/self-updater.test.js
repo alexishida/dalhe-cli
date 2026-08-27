@@ -75,7 +75,7 @@ test('fails when repository url is missing', async () => {
   await assert.rejects(() => updater.update(), /Official dalhe-cli repository is not configured/);
 });
 
-test('update command prints executed install command', async () => {
+test('update command prints executed install command and synced skills', async () => {
   const command = new UpdateCommand({
     selfUpdater: {
       async update() {
@@ -91,6 +91,14 @@ test('update command prints executed install command', async () => {
         };
       },
     },
+    skillManager: {
+      async updateAll() {
+        return {
+          totalUpdated: 2,
+          updatedSkills: [{ name: 'rails8' }, { name: 'nodejs-dev' }],
+        };
+      },
+    },
   });
 
   const result = await command.execute([]);
@@ -99,12 +107,48 @@ test('update command prints executed install command', async () => {
   assert.match(result.message, /OpenSpec: @fission-ai\/openspec@latest/);
   assert.match(result.message, /- npm install -g git\+https:\/\/github\.com\/alexishida\/dalhe-cli\.git/);
   assert.match(result.message, /- npm install -g @fission-ai\/openspec@latest/);
+  assert.match(result.message, /Skills synced globally:/);
+  assert.match(result.message, /- rails8/);
+  assert.match(result.message, /- nodejs-dev/);
+});
+
+test('update command reports when no skills are installed to sync', async () => {
+  const command = new UpdateCommand({
+    selfUpdater: {
+      async update() {
+        return {
+          command: 'npm',
+          args: ['install', '-g', 'git+https://github.com/alexishida/dalhe-cli.git'],
+          target: 'git+https://github.com/alexishida/dalhe-cli.git',
+          openspec: {
+            command: 'npm',
+            args: ['install', '-g', OPENSPEC_PACKAGE],
+            target: OPENSPEC_PACKAGE,
+          },
+        };
+      },
+    },
+    skillManager: {
+      async updateAll() {
+        return { totalUpdated: 0, updatedSkills: [] };
+      },
+    },
+  });
+
+  const result = await command.execute([]);
+
+  assert.match(result.message, /No installed skills to sync\./);
 });
 
 test('update command rejects extra arguments', async () => {
   const command = new UpdateCommand({
     selfUpdater: {
       async update() {
+        throw new Error('should not run');
+      },
+    },
+    skillManager: {
+      async updateAll() {
         throw new Error('should not run');
       },
     },

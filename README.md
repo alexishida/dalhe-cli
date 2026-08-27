@@ -6,7 +6,7 @@ CLI for bootstrapping projects with Dalhe base files.
 
 `dalhe init` copies the template from `src/template/init` into the current directory, prepares the initial project structure, and runs `openspec init --tools claude,codex`.
 
-`dalhe skill` lists, installs, removes, and updates skills maintained in `src/template/skills`, publishing them globally for Codex and Claude Code.
+`dalhe skill` lists skills from the official git repository, and installs, removes, and updates skills maintained in `src/template/skills`, publishing them globally for Codex and Claude Code.
 Official skills do not use prefixes.
 
 `dalhe update` updates the global CLI installation and also updates `OpenSpec`.
@@ -117,7 +117,9 @@ dalhe -v
 
 ### Listing
 
-Lists all skills available in `src/template/skills`.
+Lists all skills available in the official git repository (`src/template/skills`), fetched directly from GitHub.
+
+If the remote repository is unreachable or not configured, it falls back to listing the skills shipped with the currently installed CLI version.
 
 Currently included skills:
 
@@ -125,10 +127,14 @@ Currently included skills:
 - `rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
 - `nodejs-dev`: support for developing and maintaining Node.js projects.
 - `pure-ruby`: support for developing and maintaining pure Ruby projects.
+- `code-review`: Rails code quality, architecture, and pattern analysis without modifying code.
+- `electron-react`: building, scaffolding, and structuring Electron desktop apps with React and TypeScript.
 
 ```bash
 dalhe skill list
 ```
+
+To force listing the installed version locally (no network), set `DALHE_CLI_SKIP_REMOTE_SKILL_LIST=1`.
 
 ### Installation
 
@@ -177,7 +183,7 @@ dalhe skill update-all
 
 ## `update` command
 
-Updates CLI globally from official repository and syncs `OpenSpec`:
+Updates CLI globally from official repository, syncs `OpenSpec`, and synchronizes globally installed skills:
 
 ```bash
 dalhe update
@@ -187,6 +193,7 @@ Behavior:
 
 - Runs `npm install -g git+https://github.com/alexishida/dalhe-cli.git`.
 - Then runs `npm install -g @fission-ai/openspec@latest`.
+- Then syncs the globally installed skills (equivalent to `dalhe skill update-all`), updating installed skills in Codex and Claude Code to the current template version.
 - Uses `npm.cmd` on Windows.
 - Uses `npm` on Linux.
 - Requires `npm` to be installed and permission to update global packages.

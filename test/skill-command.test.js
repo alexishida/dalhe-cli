@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { SkillCommand } from '../src/commands/SkillCommand.js';
 
-test('skill list shows only skill names', async () => {
+test('skill list falls back to installed skills without a remote repository', async () => {
   const command = new SkillCommand({
     skillManager: {
       async list() {
@@ -29,7 +29,54 @@ test('skill list shows only skill names', async () => {
 
   const result = await command.execute(['list']);
 
-  assert.equal(result.message, ['Available skills:', '- rails8', ''].join('\n'));
+  assert.equal(
+    result.message,
+    ['Available skills (from installed version):', '- rails8', ''].join('\n'),
+  );
+});
+
+test('skill list shows skills from the repository', async () => {
+  const command = new SkillCommand({
+    skillManager: {
+      async list() {
+        throw new Error('should not be called');
+      },
+    },
+    remoteSkillRepository: {
+      async list() {
+        return [{ name: 'rails8' }, { name: 'pure-ruby' }];
+      },
+    },
+  });
+
+  const result = await command.execute(['list']);
+
+  assert.equal(
+    result.message,
+    ['Available skills from the repository:', '- rails8', '- pure-ruby', ''].join('\n'),
+  );
+});
+
+test('skill list falls back to installed skills when repository is unreachable', async () => {
+  const command = new SkillCommand({
+    skillManager: {
+      async list() {
+        return [{ name: 'rails8' }];
+      },
+    },
+    remoteSkillRepository: {
+      async list() {
+        throw new Error('network down');
+      },
+    },
+  });
+
+  const result = await command.execute(['list']);
+
+  assert.equal(
+    result.message,
+    ['Available skills (from installed version):', '- rails8', ''].join('\n'),
+  );
 });
 
 test('skill install-all shows installed skill names', async () => {

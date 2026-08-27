@@ -1,8 +1,9 @@
 import { CliError } from '../core/CliError.js';
 
 export class UpdateCommand {
-  constructor({ selfUpdater }) {
+  constructor({ selfUpdater, skillManager }) {
     this.selfUpdater = selfUpdater;
+    this.skillManager = skillManager;
   }
 
   get name() {
@@ -10,7 +11,7 @@ export class UpdateCommand {
   }
 
   get description() {
-    return 'Updates dalhe-cli and OpenSpec.';
+    return 'Updates dalhe-cli, OpenSpec, and global skills.';
   }
 
   helpText() {
@@ -18,7 +19,8 @@ export class UpdateCommand {
       'Usage:',
       '  dalhe update',
       '',
-      'Runs a global update for dalhe-cli and OpenSpec via npm.',
+      'Runs a global update for dalhe-cli and OpenSpec via npm,',
+      'and syncs globally installed skills from the repository.',
       '',
     ].join('\n');
   }
@@ -31,6 +33,7 @@ export class UpdateCommand {
     }
 
     const result = await this.selfUpdater.update();
+    const skills = await this.skillManager.updateAll();
 
     return {
       message: [
@@ -41,7 +44,19 @@ export class UpdateCommand {
         `- ${result.command} ${result.args.join(' ')}`,
         `- ${result.openspec.command} ${result.openspec.args.join(' ')}`,
         '',
+        ...this.#skillsMessage(skills),
       ].join('\n'),
     };
+  }
+
+  #skillsMessage(result) {
+    if (result.totalUpdated === 0) {
+      return ['No installed skills to sync.'];
+    }
+
+    return [
+      'Skills synced globally:',
+      ...result.updatedSkills.map((skill) => `- ${skill.name}`),
+    ];
   }
 }

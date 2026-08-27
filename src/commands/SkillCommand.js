@@ -1,8 +1,9 @@
 import { CliError } from '../core/CliError.js';
 
 export class SkillCommand {
-  constructor({ skillManager }) {
+  constructor({ skillManager, remoteSkillRepository }) {
     this.skillManager = skillManager;
+    this.remoteSkillRepository = remoteSkillRepository;
   }
 
   get name() {
@@ -36,7 +37,7 @@ export class SkillCommand {
         this.#assertNoExtraArgs(rest, 'list');
         this.#assertNoSkillNameForList(skillName);
         return {
-          message: this.#listMessage(await this.skillManager.list()),
+          message: this.#listMessage(await this.#listSkills()),
         };
 
       case 'install':
@@ -79,13 +80,30 @@ export class SkillCommand {
     }
   }
 
-  #listMessage(skills) {
-    if (skills.length === 0) {
-      return 'No skills available.\n';
+  async #listSkills() {
+    if (!this.remoteSkillRepository) {
+      return { skills: await this.skillManager.list(), source: 'installed' };
     }
 
+    try {
+      return { skills: await this.remoteSkillRepository.list(), source: 'repository' };
+    } catch {
+      return { skills: await this.skillManager.list(), source: 'installed' };
+    }
+  }
+
+  #listMessage({ skills, source }) {
+    if (skills.length === 0) {
+      return source === 'repository' ? 'No skills found in the repository.\n' : 'No skills available.\n';
+    }
+
+    const heading =
+      source === 'repository'
+        ? 'Available skills from the repository:'
+        : 'Available skills (from installed version):';
+
     return [
-      'Available skills:',
+      heading,
       ...skills.flatMap((skill) => this.#skillListLines(skill)),
       '',
     ].join('\n');

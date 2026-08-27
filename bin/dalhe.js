@@ -8,6 +8,7 @@ import { SkillCommand } from '../src/commands/SkillCommand.js';
 import { UpdateCommand } from '../src/commands/UpdateCommand.js';
 import { CliApplication } from '../src/core/CliApplication.js';
 import { OpenSpecInitializer } from '../src/services/OpenSpecInitializer.js';
+import { RemoteSkillRepository } from '../src/services/RemoteSkillRepository.js';
 import { SelfUpdater } from '../src/services/SelfUpdater.js';
 import { SkillManager } from '../src/services/SkillManager.js';
 import { TemplateCopier } from '../src/services/TemplateCopier.js';
@@ -15,6 +16,10 @@ import { TemplateCopier } from '../src/services/TemplateCopier.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '..');
+
+const skillManager = new SkillManager({
+  templateRootDir: resolve(projectRoot, 'src', 'template', 'skills'),
+});
 
 const app = new CliApplication({
   name: 'dalhe',
@@ -28,14 +33,16 @@ const app = new CliApplication({
       targetDir: process.cwd(),
     }),
     new SkillCommand({
-      skillManager: new SkillManager({
-        templateRootDir: resolve(projectRoot, 'src', 'template', 'skills'),
+      skillManager,
+      remoteSkillRepository: new RemoteSkillRepository({
+        repositoryUrl: packageJson.repository?.url,
       }),
     }),
     new UpdateCommand({
       selfUpdater: new SelfUpdater({
         repositoryUrl: packageJson.repository?.url,
       }),
+      skillManager,
     }),
   ],
 });

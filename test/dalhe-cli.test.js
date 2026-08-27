@@ -58,10 +58,11 @@ test('lists available skills', async () => {
       env: {
         HOME: fakeHome,
         CODEX_HOME: resolve(fakeHome, 'codex-home'),
+        DALHE_CLI_SKIP_REMOTE_SKILL_LIST: '1',
       },
     });
 
-    assert.match(result.stdout, /Available skills:/);
+    assert.match(result.stdout, /Available skills/);
     assert.match(result.stdout, /rails8/);
     assert.doesNotMatch(result.stdout, /Codex: not found/);
     assert.doesNotMatch(result.stdout, /Claude Code: not found/);

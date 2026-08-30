@@ -1,5 +1,5 @@
 ---
-name: code-review
+name: dl-code-review
 description: >-
   Analyzes Rails code quality, architecture, and patterns without modifying
   code. Use when the user wants a code review, quality analysis, architecture

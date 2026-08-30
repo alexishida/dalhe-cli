@@ -23,11 +23,11 @@ test('fetches skills from the repository contents API', async () => {
     async fetchImpl(url) {
       requestedUrl = url;
       return jsonResponse(200, [
-        { name: 'code-review', type: 'dir' },
-        { name: 'rails8', type: 'dir' },
+        { name: 'dl-code-review', type: 'dir' },
+        { name: 'dl-rails-8', type: 'dir' },
         { name: 'SKILL.md', type: 'file' },
         { name: '.hidden-skill', type: 'dir' },
-        { name: 'nodejs-dev', type: 'dir' },
+        { name: 'dl-nodejs-dev', type: 'dir' },
       ]);
     },
   });
@@ -40,7 +40,7 @@ test('fetches skills from the repository contents API', async () => {
   );
   assert.deepEqual(
     skills.map((skill) => skill.name),
-    ['code-review', 'nodejs-dev', 'rails8'],
+    ['dl-code-review', 'dl-nodejs-dev', 'dl-rails-8'],
   );
 });
 

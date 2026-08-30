@@ -1,5 +1,5 @@
 ---
-name: rails-code-audit
+name: dl-rails-code-audit
 description: >-
   Audita projetos Ruby on Rails 7 ou 8 (com banco Oracle ou MariaDB/MySQL) em
   busca de falhas de segurança, gambiarras, código fora do padrão, antipadrões

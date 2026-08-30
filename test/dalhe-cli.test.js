@@ -63,11 +63,11 @@ test('lists available skills', async () => {
     });
 
     assert.match(result.stdout, /Available skills/);
-    assert.match(result.stdout, /rails8/);
+    assert.match(result.stdout, /dl-rails-8/);
     assert.doesNotMatch(result.stdout, /Codex: not found/);
     assert.doesNotMatch(result.stdout, /Claude Code: not found/);
-    assert.doesNotMatch(result.stdout, /\/codex-home\/skills\/rails8/);
-    assert.doesNotMatch(result.stdout, /\/\.claude\/skills\/rails8/);
+    assert.doesNotMatch(result.stdout, /\/codex-home\/skills\/dl-rails-8/);
+    assert.doesNotMatch(result.stdout, /\/\.claude\/skills\/dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
   } finally {
@@ -106,8 +106,8 @@ test('initializes project and runs openspec init', async () => {
 test('updates all installed skills', async () => {
   const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-update-all-'));
   const codexHome = resolve(fakeHome, 'codex-home');
-  const installedSkillFile = join(codexHome, 'skills', 'rails8', 'SKILL.md');
-  const templateSkillFile = resolve(process.cwd(), 'src', 'template', 'skills', 'rails8', 'SKILL.md');
+  const installedSkillFile = join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md');
+  const templateSkillFile = resolve(process.cwd(), 'src', 'template', 'skills', 'dl-rails-8', 'SKILL.md');
   const env = {
     HOME: fakeHome,
     USERPROFILE: fakeHome,
@@ -115,7 +115,7 @@ test('updates all installed skills', async () => {
   };
 
   try {
-    const installResult = runCli(['skill', 'install', 'rails8'], { env });
+    const installResult = runCli(['skill', 'install', 'dl-rails-8'], { env });
 
     assert.equal(installResult.status, 0);
 
@@ -124,7 +124,7 @@ test('updates all installed skills', async () => {
     const result = runCli(['skill', 'update-all'], { env });
 
     assert.match(result.stdout, /1 skill updated globally\./);
-    assert.match(result.stdout, /- rails8/);
+    assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
     assert.equal(
@@ -152,12 +152,12 @@ test('installs all available skills', async () => {
     const result = runCli(['skill', 'install-all'], { env });
 
     assert.match(result.stdout, /\d+ skills installed globally\./);
-    assert.match(result.stdout, /- rails8/);
+    assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
-    assert.equal((await readFile(join(codexHome, 'skills', 'rails8', 'SKILL.md'), 'utf8')).length > 0, true);
+    assert.equal((await readFile(join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8')).length > 0, true);
     assert.equal(
-      (await readFile(join(fakeHome, '.claude', 'skills', 'rails8', 'SKILL.md'), 'utf8')).length > 0,
+      (await readFile(join(fakeHome, '.claude', 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8')).length > 0,
       true,
     );
   } finally {
@@ -185,12 +185,12 @@ test('uninstalls all available skills', async () => {
     const result = runCli(['skill', 'uninstall-all'], { env });
 
     assert.match(result.stdout, /\d+ skills removed globally\./);
-    assert.match(result.stdout, /- rails8/);
+    assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
-    assert.equal(await readFile(join(codexHome, 'skills', 'rails8', 'SKILL.md'), 'utf8').catch(() => null), null);
+    assert.equal(await readFile(join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8').catch(() => null), null);
     assert.equal(
-      await readFile(join(fakeHome, '.claude', 'skills', 'rails8', 'SKILL.md'), 'utf8').catch(() => null),
+      await readFile(join(fakeHome, '.claude', 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8').catch(() => null),
       null,
     );
   } finally {

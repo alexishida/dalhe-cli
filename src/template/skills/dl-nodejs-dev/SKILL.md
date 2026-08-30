@@ -1,5 +1,5 @@
 ---
-name: nodejs-dev
+name: dl-nodejs-dev
 description: Build, structure, and refactor Node.js applications following modern production-grade conventions. Use this skill whenever the user is writing Node.js code, starting a new Node project, setting up an Express/Fastify API, structuring a backend service, configuring TypeScript for Node, choosing dependencies, writing tests for Node code, handling async/error patterns, or asks anything about "Node", "Node.js", "npm", "package.json", "Express", "Fastify", or server-side JavaScript. Trigger it even when the user doesn't explicitly say "follow the standards" — any non-trivial Node.js task should follow these conventions by default.
 ---
 

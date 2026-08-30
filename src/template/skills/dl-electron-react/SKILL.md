@@ -1,5 +1,5 @@
 ---
-name: electron-react
+name: dl-electron-react
 description: Build, scaffold, and structure cross-platform desktop applications using Electron with React and TypeScript, bundled with electron-vite. Use this skill whenever the user wants to create an Electron app, add React to Electron, set up a desktop application with web technologies, wire up IPC communication between main and renderer processes, configure a preload script with contextBridge, structure an Electron project, or package/distribute an Electron app with electron-builder. Trigger this even when the user only says "desktop app", "Electron", "system tray app", or describes a native-feeling app built with React — don't wait for them to name electron-vite explicitly. Also use it when reviewing or fixing IPC security, nodeIntegration/contextIsolation settings, Electron build configuration, or wiring renderer state (Zustand) to the main process.
 ---
 

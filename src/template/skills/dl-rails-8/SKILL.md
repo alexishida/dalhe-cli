@@ -1,5 +1,5 @@
 ---
-name: rails8
+name: dl-rails-8
 description: Build, refactor, and review Ruby on Rails 8 applications running on Ruby 4 using clean-code best practices. Use this skill whenever the user works with Rails 8.0/8.1 — generating apps, models, controllers, jobs, or migrations; setting up the Rails 8 "Solid" stack (Solid Queue, Solid Cache, Solid Cable), authentication, Kamal deploys, Propshaft, or Turbo/Hotwire; or asking for idiomatic, well-structured, testable Ruby code. Trigger it even when the user only says "Rails", "Ruby on Rails", "Rails app", "ActiveRecord", "Hotwire", "Kamal", or names a Ruby/Rails file, and especially when they mention clean code, refactoring, code review, fat models/skinny controllers, service objects, or test coverage. Prefer this over relying on memory, since Rails 8 changed several defaults (no Redis/Sidekiq required, no Webpacker/Sprockets, built-in auth generator).
 ---
 

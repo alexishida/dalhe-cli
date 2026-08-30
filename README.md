@@ -123,12 +123,12 @@ If the remote repository is unreachable or not configured, it falls back to list
 
 Currently included skills:
 
-- `rails8`: support for development, refactoring, and review of Rails 8 apps.
-- `rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
-- `nodejs-dev`: support for developing and maintaining Node.js projects.
-- `pure-ruby`: support for developing and maintaining pure Ruby projects.
-- `code-review`: Rails code quality, architecture, and pattern analysis without modifying code.
-- `electron-react`: building, scaffolding, and structuring Electron desktop apps with React and TypeScript.
+- `dl-rails-8`: support for development, refactoring, and review of Rails 8 apps.
+- `dl-rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
+- `dl-nodejs-dev`: support for developing and maintaining Node.js projects.
+- `dl-pure-ruby`: support for developing and maintaining pure Ruby projects.
+- `dl-code-review`: Rails code quality, architecture, and pattern analysis without modifying code.
+- `dl-electron-react`: building, scaffolding, and structuring Electron desktop apps with React and TypeScript.
 
 ```bash
 dalhe skill list
@@ -146,7 +146,7 @@ Installs a skill globally in both environments:
 - If skill already exists in global destination, that skill folder is replaced with current template version.
 
 ```bash
-dalhe skill install rails8
+dalhe skill install dl-rails-8
 ```
 
 ### Install all
@@ -162,7 +162,7 @@ dalhe skill install-all
 Removes skill from both global destinations.
 
 ```bash
-dalhe skill uninstall rails8
+dalhe skill uninstall dl-rails-8
 ```
 
 ### Uninstall all

@@ -1,5 +1,5 @@
 ---
-name: pure-ruby
+name: dl-pure-ruby
 description: Write clean, idiomatic, dependency-free Ruby such as plain scripts, CLI tools, libraries, and gems using only the standard library. Use this skill whenever the user is writing Ruby outside of a web framework, including command-line utilities, automation scripts, data-processing tasks, algorithms, parsers, gems, or any ".rb" file where Rails, Sinatra, or Hanami is NOT involved. Trigger it even when the user just says "write a Ruby script", "make a CLI in Ruby", "refactor this Ruby class", or pastes plain Ruby and asks for help, since the goal is stdlib-only, framework-free Ruby done the idiomatic way. Do NOT use for Rails-specific work like ActiveRecord, controllers, or migrations, which belong to a Rails skill.
 ---
 

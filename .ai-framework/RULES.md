@@ -11,7 +11,7 @@ As instrucoes abaixo devem orientar analise, implementacao, alteracoes visuais e
 - O repositorio oficial do projeto e `https://github.com/alexishida/dalhe-cli`.
 - Os comandos atuais da ferramenta sao `init`, `skill` e `update`.
 - A arquitetura atual separa comandos em `src/commands`, servicos em `src/services`, infraestrutura base em `src/core` e templates em `src/template`.
-- As skills atualmente distribuidas pelo CLI sao `rails8`, `code-review` e `security-audit`.
+- As skills atualmente distribuidas pelo CLI usam o prefixo `dl-`.
 - Os testes automatizados usam `node:test` e ficam na pasta `test`.
 
 # Regras Gerais
@@ -44,7 +44,7 @@ As instrucoes abaixo devem orientar analise, implementacao, alteracoes visuais e
 
 - O comando `init` deve continuar copiando arquivos de `src/template/init` para o diretorio alvo sem sobrescrever conflitos existentes.
 - O comando `skill` deve continuar tratando skills a partir de `src/template/skills`, com comportamento previsivel para listar, instalar e desinstalar globalmente.
-- Skills oficiais mantidas em `src/template/skills` nao devem usar prefixos.
+- Skills oficiais mantidas em `src/template/skills` devem usar o prefixo `dl-`.
 - A pasta da skill e o campo `name` do front matter em `SKILL.md` devem manter o mesmo nome.
 - O comando `update` deve continuar apontando para o repositorio oficial do `dalhe-cli`, sem criar fluxos paralelos de atualizacao sem necessidade clara.
 - Alteracoes em templates de `src/template` devem considerar impacto direto no comportamento entregue aos usuarios do CLI.

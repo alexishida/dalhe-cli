@@ -1,11 +1,11 @@
 ---
 name: dl-electron-react
-description: Build, scaffold, and structure cross-platform desktop applications using Electron with React and TypeScript, bundled with electron-vite. Use this skill whenever the user wants to create an Electron app, add React to Electron, set up a desktop application with web technologies, wire up IPC communication between main and renderer processes, configure a preload script with contextBridge, structure an Electron project, or package/distribute an Electron app with electron-builder. Trigger this even when the user only says "desktop app", "Electron", "system tray app", or describes a native-feeling app built with React — don't wait for them to name electron-vite explicitly. Also use it when reviewing or fixing IPC security, nodeIntegration/contextIsolation settings, Electron build configuration, or wiring renderer state (Zustand) to the main process.
+description: Build, scaffold, and structure cross-platform desktop applications using Electron with React and TypeScript. Use for Electron architecture, secure IPC, preload/contextBridge APIs, React renderers, packaging, or Electron security reviews. Preserve an existing build tool and conventions; electron-vite and electron-builder are suitable defaults for a new app, not requirements.
 ---
 
-# Electron + React (electron-vite + TypeScript)
+# Electron + React (TypeScript)
 
-This skill builds desktop apps the modern way: **electron-vite** for bundling, **React 19 + TypeScript** for the UI, secure **contextBridge** IPC, and **electron-builder** for distribution. It encodes the conventions that keep an Electron app fast in dev (HMR), safe at runtime (no node access in the renderer), and clean to maintain (one typed contract for every cross-process call).
+This skill builds desktop apps with React and TypeScript while keeping the renderer isolated from operating-system access. Choose the project's existing build and packaging tooling. For a new project, electron-vite and electron-builder are practical defaults, but Electron Forge or a custom Vite setup can be equally appropriate when requested or already established.
 
 Electron has three "worlds" and the whole architecture hinges on respecting their boundaries:
 
@@ -17,12 +17,12 @@ Getting this boundary right is the single most important thing. A renderer with 
 
 ## Choosing the path
 
-**Default to scaffolding from the official electron-vite React template** unless the user already has a project. It gives a familiar React layout with an `electron/` folder on top, HMR for the renderer, hot-reload for main/preload, and TypeScript wired up.
+For a new project, the official electron-vite React template is a convenient default. It gives a familiar React layout with an `electron/` folder on top, HMR for the renderer, hot-reload for main/preload, and TypeScript wired up. Do not replace an existing build system merely to adopt it.
 
 | Situation | What to do |
 |---|---|
 | New app from scratch | Scaffold with the template (see "Scaffolding" below) |
-| Existing Vite/React app, wants desktop | Add the `electron/` folder + `vite-plugin-electron`, keep their renderer as-is |
+| Existing Vite/React app, wants desktop | Inspect its build scripts and add Electron using a compatible integration; keep the renderer and tooling conventions intact |
 | Existing Electron app, wants help | Read their `electron.vite.config.ts` / `vite.config.ts` and `package.json` first, then match their conventions — don't rewrite their setup |
 | Just an IPC / security question | Jump to `references/ipc-and-security.md`, no scaffolding needed |
 
@@ -64,7 +64,7 @@ my-app/
 └── resources/                  # icons, native assets bundled into the app
 ```
 
-**Why electron-vite over hand-rolling Vite + concurrently:** it builds all three targets (main, preload, renderer) from a single config with correct Node vs. DOM environments, gives you hot reload for the main/preload processes (not just the renderer), and handles the dev-server-URL-vs-built-file switch for you. The "wire vite + electron + wait-on + cross-env by hand" approach works but reinvents all of this and is fragile across versions.
+electron-vite is useful when starting fresh because it builds the main, preload, and renderer targets from one config and handles their dev/production loading split. It is not a prerequisite for secure Electron IPC or for maintaining an existing application.
 
 If the user wants **electron-builder vs electron-forge**: this skill standardizes on electron-builder (what the template ships with). It's mature, config-driven via one YAML file, and covers Windows/macOS/Linux targets plus auto-update. Only switch to Forge if the user explicitly asks.
 
@@ -97,6 +97,8 @@ Cross-process communication should be **one typed contract touched in exactly th
 3. **`src/preload/index.d.ts`** — declare the shape on `window.api` so the renderer gets autocomplete and type-checking.
 
 A complete, copy-adaptable example of all three files (plus the renderer call site) lives in **`references/ipc-and-security.md`**. The guiding rule: expose *specific, named operations* (`api.readConfig()`, `api.saveFile(data)`), never generic escape hatches (`api.invoke(anyChannel, anyArgs)`) — a generic bridge re-opens the hole `contextIsolation` closed.
+
+Each main-process handler must also verify that the sender is an expected, currently loaded application frame before acting. Input validation alone does not prevent a navigated, compromised, or unexpected renderer from invoking a privileged channel. Establish a deliberate navigation and external-link policy for every window; the reference includes both checks.
 
 ## Common build & packaging tasks
 

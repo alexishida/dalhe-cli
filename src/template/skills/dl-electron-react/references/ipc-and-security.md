@@ -23,7 +23,7 @@ The model: **renderer is untrusted, main is trusted, preload is the airlock.** T
 ## 2. The required `webPreferences`
 
 ```ts
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, shell } from 'electron'
 import { join } from 'node:path'
 
 function createWindow(): BrowserWindow {
@@ -41,6 +41,28 @@ function createWindow(): BrowserWindow {
   })
 
   win.on('ready-to-show', () => win.show())
+  const isAllowedUrl = (url: string) => {
+    try {
+      const current = new URL(win.webContents.getURL())
+      const destination = new URL(url)
+      // file: and custom protocols can have an opaque ("null") origin.
+      // For those, permit only the exact already-loaded application URL.
+      return current.origin === 'null'
+        ? destination.href === current.href
+        : destination.origin === current.origin
+    } catch {
+      return false
+    }
+  }
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (isAllowedUrl(url)) return { action: 'allow' }
+    void shell.openExternal(url)
+    return { action: 'deny' }
+  })
+  win.webContents.on('will-navigate', (event, url) => {
+    if (!isAllowedUrl(url)) event.preventDefault()
+  })
   return win
 }
 ```
@@ -49,7 +71,7 @@ function createWindow(): BrowserWindow {
 - **`nodeIntegration: false`** — no `require`, `process`, `Buffer`, etc. in the renderer.
 - **`sandbox: true`** — the renderer process itself is OS-sandboxed. The preload then runs with a reduced Node surface (only `electron` ipcRenderer/contextBridge and a few polyfills). This is the strongest posture.
 
-Also harden navigation: deny `window.open` for untrusted URLs and block in-page navigation to external origins via `webContents.setWindowOpenHandler` and the `will-navigate` event. Load only your own content; open external links in the user's real browser with `shell.openExternal`.
+Set a deliberate navigation policy for each window. The example permits only the renderer origin, opens external links through `shell.openExternal`, and prevents cross-origin in-window navigation. Adapt the permitted origin for development and custom protocols; do not use an unrestricted allow-list. Validate external URLs against an explicit scheme/host allow-list when the app handles user-controlled links.
 
 ## 3. The typed three-file IPC pattern (full example)
 
@@ -58,22 +80,32 @@ Goal: a renderer call like `const path = await window.api.openFile()` that is fu
 ### `src/main/index.ts` — register the handler
 
 ```ts
-import { app, BrowserWindow, ipcMain, dialog } from 'electron'
+import { BrowserWindow, ipcMain, dialog } from 'electron'
 
-ipcMain.handle('dialog:openFile', async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    properties: ['openFile'],
+function assertTrustedSender(event: Electron.IpcMainInvokeEvent, window: BrowserWindow) {
+  if (event.sender.id !== window.webContents.id || event.senderFrame.url !== window.webContents.mainFrame.url) {
+    throw new Error('IPC request from an untrusted frame')
+  }
+}
+
+function registerIpcHandlers(mainWindow: BrowserWindow) {
+  ipcMain.handle('dialog:openFile', async (event) => {
+    assertTrustedSender(event, mainWindow)
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile'],
+    })
+    if (canceled) return null
+    return filePaths[0]
   })
-  if (canceled) return null
-  return filePaths[0]
-})
 
-// example with a validated argument
-ipcMain.handle('store:set', async (_event, key: unknown, value: unknown) => {
-  if (typeof key !== 'string') throw new Error('key must be a string')
-  // ...persist value safely...
-  return true
-})
+  // example with a validated argument
+  ipcMain.handle('store:set', async (event, key: unknown, value: unknown) => {
+    assertTrustedSender(event, mainWindow)
+    if (typeof key !== 'string') throw new Error('key must be a string')
+    // ...persist value safely...
+    return true
+  })
+}
 ```
 
 ### `src/preload/index.ts` — expose a narrow API
@@ -141,6 +173,7 @@ Never expose `ipcRenderer.on` directly to the renderer — wrap it so the render
 
 The renderer is the untrusted side. Every argument arriving at an `ipcMain` handler is effectively user input from a potentially-compromised context. Before acting on it:
 
+- Verify the sender belongs to the expected `BrowserWindow` and its main frame still has the permitted application origin. Apply this to every privileged handler, including handlers without arguments.
 - Type-check (`typeof`, `Array.isArray`, or a schema lib like `zod`).
 - Range/format-check (path is inside an allowed directory, id is a known value, size is bounded).
 - Never pass renderer-supplied strings straight into `child_process`, `fs` paths, or shell commands.

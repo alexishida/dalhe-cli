@@ -12,7 +12,7 @@ test('skill list falls back to installed skills without a remote repository', as
             name: 'rails8',
             codex: {
               installed: true,
-              path: '/home/user/.codex/skills/rails8',
+              path: '/home/user/.agents/skills/rails8',
             },
             claude: {
               installed: true,

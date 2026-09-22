@@ -148,14 +148,12 @@ for (const updateArgs of [['update-all'], ['update'], ['update', 'dl-rails-8']])
 
 test('installs all available skills', async () => {
   const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-install-all-'));
-  const codexHome = resolve(fakeHome, 'codex-home');
   const parsedHome = parse(fakeHome);
   const env = {
     HOME: fakeHome,
     USERPROFILE: fakeHome,
     HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
     HOMEPATH: fakeHome.slice(parsedHome.root.length - 1),
-    CODEX_HOME: codexHome,
   };
 
   try {
@@ -165,7 +163,10 @@ test('installs all available skills', async () => {
     assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
-    assert.equal((await readFile(join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8')).length > 0, true);
+    assert.equal(
+      (await readFile(join(fakeHome, '.agents', 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8')).length > 0,
+      true,
+    );
     assert.equal(
       (await readFile(join(fakeHome, '.claude', 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8')).length > 0,
       true,
@@ -177,14 +178,12 @@ test('installs all available skills', async () => {
 
 test('uninstalls all available skills', async () => {
   const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-uninstall-all-'));
-  const codexHome = resolve(fakeHome, 'codex-home');
   const parsedHome = parse(fakeHome);
   const env = {
     HOME: fakeHome,
     USERPROFILE: fakeHome,
     HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
     HOMEPATH: fakeHome.slice(parsedHome.root.length - 1),
-    CODEX_HOME: codexHome,
   };
 
   try {
@@ -198,7 +197,10 @@ test('uninstalls all available skills', async () => {
     assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
-    assert.equal(await readFile(join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8').catch(() => null), null);
+    assert.equal(
+      await readFile(join(fakeHome, '.agents', 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8').catch(() => null),
+      null,
+    );
     assert.equal(
       await readFile(join(fakeHome, '.claude', 'skills', 'dl-rails-8', 'SKILL.md'), 'utf8').catch(() => null),
       null,

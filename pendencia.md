@@ -46,40 +46,27 @@ Claude Code.
 - `src/template/skills/dl-rails-8/references/rails8-features.md`
 - `src/template/skills/dl-rails-8/references/rubocop-config.md`
 
-## Próximos passos
+## Concluído nesta retomada
 
-1. Revisar `dl-electron-react` e as referências, principalmente os exemplos de
-   IPC. Eles precisam validar também a origem da chamada e manter uma política
-   de navegação/abertura externa, além de não apresentar Electron Vite como
-   obrigatório para todo projeto existente.
-2. Revisar `dl-rails-code-audit`:
-   - remover comandos que escondem falhas com `2>/dev/null` e `|| true`;
-   - deixar claro o que é resultado de ferramenta versus achado confirmado;
-   - remover a instrução específica de gravar em `/mnt/user-data/outputs/`,
-     que não é portátil entre Codex e Claude Code.
-3. Revisar `dl-binary-recompilation-engineer` e `dl-matching-decomp` apenas
-   para eliminar instruções específicas de um host e referências de instalação
-   desatualizadas. O conteúdo técnico delas já é aprofundado.
-4. Atualizar `SkillManager` para instalar a cópia do Codex no caminho padrão
-   `~/.agents/skills/<skill-name>`. Preservar `CODEX_HOME` como configuração
-   explícita para instalações que já usam esse caminho, se essa
-   retrocompatibilidade for desejada. Ajustar testes e README para refletir o
-   caminho final.
-5. Acrescentar teste que instala cada skill em uma home temporária e confirma:
-   - `SKILL.md` existe nos destinos Codex e Claude;
-   - `name` do front matter é igual ao nome da pasta;
-   - as referências, scripts e assets são copiados;
-   - a skill não tem front matter específico de Claude que possa prejudicar
-     a portabilidade.
-6. Rodar o validador do `skill-creator` para todas as pastas de skill:
-
-   ```bash
-   for skill in src/template/skills/*; do
-     python3 /home/alexishida/.codex/skills/.system/skill-creator/scripts/quick_validate.py "$skill" || exit 1
-   done
-   ```
-
-7. Executar `npm test` e `git diff --check` depois dos ajustes.
+- `dl-electron-react` agora trata electron-vite/electron-builder como opções
+  para novos projetos, preserva a configuração existente e exige validação do
+  frame emissor em IPC, política explícita de navegação e abertura externa.
+- `dl-rails-code-audit` não esconde falhas de ferramentas, separa seus alertas
+  de achados confirmados e só grava relatório em um caminho informado pelo
+  usuário.
+- As instruções de instalação de `dl-binary-recompilation-engineer` e
+  `dl-matching-decomp` foram revisadas: já usam os caminhos portáteis atuais e
+  não continham referência específica de host a remover.
+- `SkillManager` usa `~/.agents/skills/<skill-name>` como destino padrão do
+  Codex; `CODEX_HOME/skills/<skill-name>` continua disponível quando definido.
+  README e testes foram atualizados.
+- Foi adicionado teste que instala todas as skills distribuídas em uma home
+  temporária, valida o front matter portátil e compara todos os arquivos
+  copiados nos destinos Codex e Claude Code.
+- O validador do `skill-creator` passou para as oito skills e `git diff --check`
+  não reportou problemas. Os testes focados passaram. `npm test` teve somente
+  a falha ambiental já observada de instalação via `git+file`, bloqueada pelo
+  npm com `EALLOWGIT`; os demais 70 testes passaram.
 
 ## Contexto adicional do repositório
 

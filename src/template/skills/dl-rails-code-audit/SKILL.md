@@ -61,18 +61,21 @@ a auditoria se elas não estiverem instaladas; a análise manual é a base.
 
 ```bash
 # Segurança estática Rails
-bundle exec brakeman -q -f json 2>/dev/null || gem list brakeman
+bundle exec brakeman -q -f json
 
 # Vulnerabilidades conhecidas em dependências
-bundle exec bundler-audit check --update 2>/dev/null || true
+bundle exec bundler-audit check --update
 
 # Estilo / convenções (só reporte, não reescreva em massa)
-bundle exec rubocop --format json 2>/dev/null || true
+bundle exec rubocop --format json
 ```
 
-Use a saída dessas ferramentas como **entrada adicional**, não como o relatório
-final. Você ainda precisa interpretar, priorizar e remover ruído (falsos
-positivos e regras irrelevantes para o time).
+Execute cada ferramenta separadamente e registre claramente uma indisponibilidade
+ou falha de execução; não a esconda nem a trate como resultado sem achados. Use
+a saída como **sinal de ferramenta**, não como achado confirmado. Só promova um
+alerta ao relatório de achados depois de verificar o código, a configuração e o
+caminho de execução relevante. Identifique alertas não confirmados em uma seção
+separada, com a ferramenta que os produziu e o que falta verificar.
 
 ### 3. Análise manual por categoria
 
@@ -151,6 +154,11 @@ Use SEMPRE este template:
 
 <melhorias de processo: configurar Brakeman no CI, adicionar RuboCop,
 adotar service objects, política de migrations, etc.>
+
+## Sinais de ferramentas a verificar
+
+<alertas ainda não confirmados, indisponibilidades das ferramentas e limitações
+de análise; não os conte como achados.>
 ```
 
 Regras para o relatório:
@@ -165,6 +173,7 @@ Regras para o relatório:
 
 ## Saída como arquivo
 
-Se o usuário pedir um relatório para compartilhar com o time (ou o codebase for
-grande), salve em um `.md` em `/mnt/user-data/outputs/` e apresente o arquivo.
-Para revisões pequenas/rápidas, responder inline é suficiente.
+Para revisões pequenas/rápidas, responder inline é suficiente. Se o usuário
+pedir um arquivo compartilhável, grave-o no caminho ou diretório de saída que
+ele indicar; se não houver indicação, proponha um caminho relativo ao projeto
+antes de escrever. Não presuma um diretório específico do ambiente.

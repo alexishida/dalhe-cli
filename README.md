@@ -147,8 +147,8 @@ Local listing checks template files concurrently and skips global installation s
 
 Installs a skill globally in both environments:
 
-- Codex: copies entire skill folder to `$CODEX_HOME/skills/<skill-name>`.
-- Codex without `CODEX_HOME`: uses `~/.codex/skills/<skill-name>` on Linux and `%USERPROFILE%\.codex\skills\<skill-name>` on Windows.
+- Codex: copies the entire skill folder to `$CODEX_HOME/skills/<skill-name>` when `CODEX_HOME` is explicitly configured.
+- Codex without `CODEX_HOME`: uses `~/.agents/skills/<skill-name>` on Linux and `%USERPROFILE%\.agents\skills\<skill-name>` on Windows.
 - Claude Code: copies entire skill folder to `~/.claude/skills/<skill-name>` on Linux and `%USERPROFILE%\.claude\skills\<skill-name>` on Windows.
 - If skill already exists in global destination, that skill folder is replaced with current template version.
 - Skill names must be directory names: `/`, `\`, `:` and null characters are rejected, as are the names `.` and `..`.

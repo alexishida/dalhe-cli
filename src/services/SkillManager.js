@@ -178,7 +178,7 @@ export class SkillManager {
   }
 
   #codexHomeDir() {
-    return resolve(this.env.CODEX_HOME || join(this.userHomeDir, '.codex'));
+    return resolve(this.env.CODEX_HOME || join(this.userHomeDir, '.agents'));
   }
 
   #codexSkillsDir() {

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -48,6 +48,22 @@ async function exists(path) {
   });
 
   return Boolean(info);
+}
+
+async function relativeFiles(rootDir, currentDir = rootDir) {
+  const entries = await readdir(currentDir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const fullPath = join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await relativeFiles(rootDir, fullPath));
+    } else if (entry.isFile()) {
+      files.push(fullPath.slice(rootDir.length + 1));
+    }
+  }
+
+  return files.sort();
 }
 
 test('lists available skills with Codex and Claude install status', async () => {
@@ -125,6 +141,34 @@ test('installs skill globally for Codex and Claude Code', async () => {
     );
   } finally {
     await rm(workspace, { force: true, recursive: true });
+  }
+});
+
+test('installs every bundled portable skill in the default Codex and Claude paths', async (t) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-portable-skills-'));
+  t.after(() => rm(workspace, { force: true, recursive: true }));
+  const templateRootDir = join(process.cwd(), 'src', 'template', 'skills');
+  const userHomeDir = join(workspace, 'home');
+  const manager = new SkillManager({ templateRootDir, userHomeDir, env: {} });
+  const bundledSkills = await manager.list({ includeStatus: false });
+
+  const result = await manager.installAll();
+  assert.equal(result.totalInstalled, bundledSkills.length);
+
+  for (const { name, sourceDir } of bundledSkills) {
+    const sourceSkill = await readFile(join(sourceDir, 'SKILL.md'), 'utf8');
+    const frontmatter = sourceSkill.match(/^---\n([\s\S]*?)\n---/);
+    assert.ok(frontmatter, `${name} must have frontmatter`);
+    assert.match(frontmatter[1], new RegExp(`^name: ${name}$`, 'm'));
+    assert.match(frontmatter[1], /^description:/m);
+    assert.doesNotMatch(frontmatter[1], /^(?:user-invocable|disable-model-invocation|allowed-tools):/m);
+
+    const codexDir = join(userHomeDir, '.agents', 'skills', name);
+    const claudeDir = join(userHomeDir, '.claude', 'skills', name);
+    assert.equal(await exists(join(codexDir, 'SKILL.md')), true);
+    assert.equal(await exists(join(claudeDir, 'SKILL.md')), true);
+    assert.deepEqual(await relativeFiles(codexDir), await relativeFiles(sourceDir));
+    assert.deepEqual(await relativeFiles(claudeDir), await relativeFiles(sourceDir));
   }
 });
 
@@ -397,7 +441,7 @@ test('single update rejects an uninstalled skill without contacting GitHub', asy
 test('skills absent from GitHub are preserved and cannot be updated individually', async (t) => {
   const workspace = await mkdtemp(join(tmpdir(), 'dalhe-removed-remote-'));
   t.after(() => rm(workspace, { recursive: true, force: true }));
-  const skillDir = join(workspace, '.codex', 'skills', 'dl-removed');
+  const skillDir = join(workspace, '.agents', 'skills', 'dl-removed');
   await mkdir(skillDir, { recursive: true });
   await writeFile(join(skillDir, 'SKILL.md'), '# Existing');
   const manager = new SkillManager({

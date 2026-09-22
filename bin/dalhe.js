@@ -17,8 +17,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '..');
 
+const remoteSkillRepository = new RemoteSkillRepository({
+  repositoryUrl: packageJson.repository?.url,
+});
 const skillManager = new SkillManager({
   templateRootDir: resolve(projectRoot, 'src', 'template', 'skills'),
+  remoteSkillRepository,
 });
 
 const app = new CliApplication({
@@ -34,9 +38,7 @@ const app = new CliApplication({
     }),
     new SkillCommand({
       skillManager,
-      remoteSkillRepository: new RemoteSkillRepository({
-        repositoryUrl: packageJson.repository?.url,
-      }),
+      remoteSkillRepository,
     }),
     new UpdateCommand({
       selfUpdater: new SelfUpdater({

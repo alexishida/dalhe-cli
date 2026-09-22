@@ -14,11 +14,10 @@ require:
   - rubocop-minitest   # or rubocop-rspec if the project uses RSpec
 
 AllCops:
-  TargetRubyVersion: 4.0
+  # Set TargetRubyVersion to the actual supported project runtime.
   NewCops: enable
   Exclude:
     - "db/schema.rb"
-    - "db/migrate/*"          # generated; don't fight the generator
     - "bin/**/*"
     - "vendor/**/*"
     - "node_modules/**/*"
@@ -47,7 +46,7 @@ bin/rubocop --regenerate-todo   # baseline existing offenses into .rubocop_todo.
 
 ## Guidance
 
-- On an existing codebase, generate a `.rubocop_todo.yml` to baseline current offenses, then fix them incrementally rather than in one giant commit. New code stays clean from day one.
+- On an existing codebase, preserve its lint baseline. Generate a `.rubocop_todo.yml` only when the task includes adopting a baseline; do not hide new offenses during a normal fix. New code stays clean from day one.
 - Don't disable cops inline to silence a real smell — if a method trips `MethodLength`, that's usually the cop telling you to extract. Reserve `# rubocop:disable` for genuine, commented exceptions.
 - Run RuboCop in CI alongside the test suite so style and correctness are gated together.
 - Keep `TargetRubyVersion` in sync with `.ruby-version` so RuboCop suggests idioms the runtime actually supports (endless methods, pattern matching, `Data.define`, hash shorthand).

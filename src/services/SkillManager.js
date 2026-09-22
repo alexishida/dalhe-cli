@@ -1,36 +1,35 @@
-import { cp, mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
+import { cp, mkdir, mkdtemp, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CliError } from '../core/CliError.js';
+import { assertSkillName } from '../core/skillName.js';
 
 const SKILL_FILENAME = 'SKILL.md';
 
 export class SkillManager {
-  constructor({ templateRootDir, env = process.env, userHomeDir = homedir() }) {
+  constructor({ templateRootDir, env = process.env, userHomeDir = homedir(), remoteSkillRepository }) {
     this.templateRootDir = templateRootDir;
     this.env = env;
     this.userHomeDir = userHomeDir;
+    this.remoteSkillRepository = remoteSkillRepository;
   }
 
-  async list() {
+  async list({ includeStatus = true } = {}) {
     await this.#assertDirectory(this.templateRootDir);
 
     const dirents = await readdir(this.templateRootDir, { withFileTypes: true });
-    const skillNames = [];
+    const candidates = dirents.filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'));
+    const valid = await Promise.all(
+      candidates.map((entry) => this.#isSkillFile(join(this.templateRootDir, entry.name, SKILL_FILENAME))),
+    );
+    const skillNames = candidates
+      .filter((entry, index) => valid[index])
+      .map((entry) => entry.name)
+      .sort();
 
-    for (const dirent of dirents) {
-      if (!dirent.isDirectory() || dirent.name.startsWith('.')) {
-        continue;
-      }
-
-      const skillFile = join(this.templateRootDir, dirent.name, SKILL_FILENAME);
-
-      if (await this.#exists(skillFile)) {
-        skillNames.push(dirent.name);
-      }
+    if (!includeStatus) {
+      return skillNames.map((name) => ({ name, sourceDir: join(this.templateRootDir, name) }));
     }
-
-    skillNames.sort();
 
     return Promise.all(skillNames.map((name) => this.#skillStatus(name)));
   }
@@ -41,7 +40,7 @@ export class SkillManager {
   }
 
   async installAll() {
-    const skills = await this.list();
+    const skills = await this.list({ includeStatus: false });
     const installedSkills = [];
 
     for (const skill of skills) {
@@ -60,7 +59,7 @@ export class SkillManager {
   }
 
   async uninstallAll() {
-    const skills = await this.list();
+    const skills = await this.list({ includeStatus: false });
     const removedSkills = [];
 
     for (const skill of skills) {
@@ -73,19 +72,62 @@ export class SkillManager {
     };
   }
 
-  async updateAll() {
-    const skills = await this.list();
-    const installedSkills = skills.filter((skill) => this.#isInstalled(skill));
-    const updatedSkills = [];
-
-    for (const skill of installedSkills) {
-      updatedSkills.push(await this.install(skill.name));
+  async update(skillName) {
+    assertSkillName(skillName);
+    if (!this.#isInstalled(await this.#skillStatus(skillName))) {
+      throw new CliError(`A skill "${skillName}" não está instalada. Use dalhe skill install ${skillName}.`, {
+        code: 'SKILL_NOT_INSTALLED',
+      });
     }
+    const snapshot = await this.#remoteSnapshot();
+    const skill = snapshot.skills.find((skill) => skill.name === skillName);
+    if (!skill) {
+      throw new CliError(`Skill não encontrada no GitHub: ${skillName}`, { code: 'REMOTE_SKILL_NOT_FOUND' });
+    }
+    const [result] = await this.#updateSkills(snapshot, [skill]);
+    return result;
+  }
 
+  async updateAll() {
+    const snapshot = await this.#remoteSnapshot();
+    const statuses = await Promise.all(snapshot.skills.map((skill) => {
+      assertSkillName(skill.name);
+      return this.#skillStatus(skill.name);
+    }));
+    const installedSkills = snapshot.skills.filter((skill, index) => this.#isInstalled(statuses[index]));
+    const updatedSkills = await this.#updateSkills(snapshot, installedSkills);
     return {
       totalUpdated: updatedSkills.length,
       updatedSkills,
     };
+  }
+
+  #remoteSnapshot() {
+    if (!this.remoteSkillRepository) {
+      throw new CliError('Repositório remoto de skills não configurado.', { code: 'MISSING_REPOSITORY_URL' });
+    }
+    return this.remoteSkillRepository.snapshot();
+  }
+
+  async #updateSkills(snapshot, skills) {
+    if (skills.length === 0) return [];
+    const workspace = await mkdtemp(join(tmpdir(), 'dalhe-skill-update-'));
+    try {
+      for (const skill of skills) {
+        await this.remoteSkillRepository.download({ snapshot, skill, targetDir: join(workspace, skill.name) });
+        if (!(await this.#isSkillFile(join(workspace, skill.name, SKILL_FILENAME)))) {
+          throw new CliError(`Template remoto inválido: ${skill.name}`, { code: 'INVALID_SKILL_TEMPLATE' });
+        }
+      }
+      const updatedSkills = [];
+      for (const skill of skills) {
+        const result = await this.#installSkill({ skillName: skill.name, sourceDir: join(workspace, skill.name) });
+        updatedSkills.push({ ...result, commit: snapshot.commit });
+      }
+      return updatedSkills;
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   }
 
   async #skillStatus(skillName) {
@@ -93,31 +135,32 @@ export class SkillManager {
     const codexDir = this.#codexSkillDir(skillName);
     const claudeDir = this.#claudeSkillDir(skillName);
     const claudeCommandFile = this.#claudeCommandFile(skillName);
+    const [codexInstalled, claudeInstalled, commandInstalled] = await Promise.all([
+      this.#exists(codexDir),
+      this.#exists(claudeDir),
+      this.#exists(claudeCommandFile),
+    ]);
 
     return {
       name: skillName,
       sourceDir,
       codex: {
         path: codexDir,
-        installed: await this.#exists(codexDir),
+        installed: codexInstalled,
       },
       claude: {
         path: claudeDir,
-        installed: await this.#exists(claudeDir),
+        installed: claudeInstalled,
       },
       claudeCommand: {
         path: claudeCommandFile,
-        installed: await this.#exists(claudeCommandFile),
+        installed: commandInstalled,
       },
     };
   }
 
   async #skillSourceDir(skillName) {
-    if (!skillName) {
-      throw new CliError('Provide a skill name.', {
-        code: 'MISSING_SKILL_NAME',
-      });
-    }
+    assertSkillName(skillName);
 
     const sourceDir = join(this.templateRootDir, skillName);
 
@@ -125,7 +168,7 @@ export class SkillManager {
 
     const skillFile = join(sourceDir, SKILL_FILENAME);
 
-    if (!(await this.#exists(skillFile))) {
+    if (!(await this.#isSkillFile(skillFile))) {
       throw new CliError(`File ${SKILL_FILENAME} not found for skill: ${skillName}`, {
         code: 'INVALID_SKILL_TEMPLATE',
       });
@@ -252,5 +295,13 @@ export class SkillManager {
     });
 
     return Boolean(info);
+  }
+
+  async #isSkillFile(path) {
+    const info = await stat(path).catch((error) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    return info?.isFile() ?? false;
   }
 }

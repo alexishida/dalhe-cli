@@ -77,7 +77,7 @@ Rails 8 tuned SQLite for production: WAL mode, sensible busy_timeout, and the So
 - **Rate limiting** in controllers: `rate_limit to: 10, within: 1.minute, only: :create`.
 - **`ActiveSupport::CurrentAttributes`** (`Current`) — request-scoped globals (current user, request id). Used by the auth generator.
 - **Active Record `normalizes`** — declare attribute normalization once: `normalizes :email, with: ->(e) { e.strip.downcase }`.
-- **`enum` with keyword syntax** and validations; **`generates_token_for`** for signed, purpose-scoped tokens (password resets, magic links).
+- **`enum` declarations using the positional name and mapping**, for example `enum :status, { draft: 0, published: 1 }, validate: true`; **`generates_token_for`** for signed, purpose-scoped tokens (password resets, magic links).
 - **Structured Event Reporting** (Rails 8.1) — `Rails.event` for structured app events feeding observability tools.
 
 ## Generators cheat sheet

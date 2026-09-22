@@ -6,12 +6,13 @@ import { join, parse, resolve } from 'node:path';
 import test from 'node:test';
 import packageJson from '../package.json' with { type: 'json' };
 import { DEFAULT_OPENSPEC_TOOLS } from '../src/services/OpenSpecInitializer.js';
+import { pathToFileURL } from 'node:url';
 
 const cliPath = resolve(process.cwd(), 'bin', 'dalhe.js');
 const openspecCommand = process.platform === 'win32' ? 'openspec.cmd' : 'openspec';
 
-function runCli(args, { cwd, env } = {}) {
-  return spawnSync(process.execPath, [cliPath, ...args], {
+function runCli(args, { cwd, env, nodeArgs = [] } = {}) {
+  return spawnSync(process.execPath, [...nodeArgs, cliPath, ...args], {
     cwd,
     encoding: 'utf8',
     env: {
@@ -103,38 +104,47 @@ test('initializes project and runs openspec init', async () => {
   }
 });
 
-test('updates all installed skills', async () => {
-  const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-update-all-'));
-  const codexHome = resolve(fakeHome, 'codex-home');
-  const installedSkillFile = join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md');
-  const templateSkillFile = resolve(process.cwd(), 'src', 'template', 'skills', 'dl-rails-8', 'SKILL.md');
-  const env = {
-    HOME: fakeHome,
-    USERPROFILE: fakeHome,
-    CODEX_HOME: codexHome,
-  };
+for (const updateArgs of [['update-all'], ['update'], ['update', 'dl-rails-8']]) {
+  test(`updates installed skills from GitHub via skill ${updateArgs.join(' ')}`, async () => {
+    const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-update-all-'));
+    const codexHome = resolve(fakeHome, 'codex-home');
+    const installedSkillFile = join(codexHome, 'skills', 'dl-rails-8', 'SKILL.md');
+    const preloadFile = join(fakeHome, 'github-fetch.mjs');
+    const env = {
+      HOME: fakeHome,
+      USERPROFILE: fakeHome,
+      CODEX_HOME: codexHome,
+    };
 
-  try {
-    const installResult = runCli(['skill', 'install', 'dl-rails-8'], { env });
+    try {
+      const fixtureUrl = pathToFileURL(resolve(process.cwd(), 'test/helpers/github-fixture.js')).href;
+      await writeFile(preloadFile, [
+        `import { createGitHubFetch } from ${JSON.stringify(fixtureUrl)};`,
+        `globalThis.fetch = createGitHubFetch({ 'dl-rails-8/SKILL.md': '# Latest GitHub version' });`,
+      ].join('\n'));
+      const installResult = runCli(['skill', 'install', 'dl-rails-8'], { env });
 
-    assert.equal(installResult.status, 0);
+      assert.equal(installResult.status, 0);
 
-    await writeFile(installedSkillFile, '# versao antiga\n');
+      await writeFile(installedSkillFile, '# versao antiga\n');
 
-    const result = runCli(['skill', 'update-all'], { env });
+      const result = runCli(['skill', ...updateArgs], {
+        env, nodeArgs: ['--import', pathToFileURL(preloadFile).href],
+      });
 
-    assert.match(result.stdout, /1 skill updated globally\./);
-    assert.match(result.stdout, /- dl-rails-8/);
-    assert.equal(result.stderr, '');
-    assert.equal(result.status, 0);
-    assert.equal(
-      await readFile(installedSkillFile, 'utf8'),
-      await readFile(templateSkillFile, 'utf8'),
-    );
-  } finally {
-    await rm(fakeHome, { force: true, recursive: true });
-  }
-});
+      assert.match(result.stdout, /pelo GitHub/);
+      assert.match(result.stdout, /dl-rails-8/);
+      assert.equal(result.stderr, '');
+      assert.equal(result.status, 0);
+      assert.equal(
+        await readFile(installedSkillFile, 'utf8'),
+        '# Latest GitHub version',
+      );
+    } finally {
+      await rm(fakeHome, { force: true, recursive: true });
+    }
+  });
+}
 
 test('installs all available skills', async () => {
   const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-install-all-'));

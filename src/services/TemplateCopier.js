@@ -1,3 +1,4 @@
+import { constants } from 'node:fs';
 import { copyFile, lstat, mkdir, readdir, stat } from 'node:fs/promises';
 import { dirname, join, relative } from 'node:path';
 import { CliError } from '../core/CliError.js';
@@ -21,8 +22,7 @@ export class TemplateCopier {
 
     for (const file of files) {
       const destination = this.#targetPath({ sourceDir, targetDir, sourcePath: file.path });
-      await mkdir(dirname(destination), { recursive: true });
-      await copyFile(file.path, destination);
+      await copyFile(file.path, destination, constants.COPYFILE_EXCL);
     }
 
     return {
@@ -74,9 +74,14 @@ export class TemplateCopier {
 
   async #assertNoConflicts({ entries, sourceDir, targetDir }) {
     const conflicts = [];
+    const blockedDirectories = new Set();
 
     for (const entry of entries) {
       const targetPath = this.#targetPath({ sourceDir, targetDir, sourcePath: entry.path });
+      if (blockedDirectories.has(dirname(targetPath))) {
+        if (entry.type === 'directory') blockedDirectories.add(targetPath);
+        continue;
+      }
       const existing = await lstat(targetPath).catch((error) => {
         if (error.code === 'ENOENT') {
           return null;
@@ -94,6 +99,7 @@ export class TemplateCopier {
       }
 
       conflicts.push(relative(targetDir, targetPath));
+      if (entry.type === 'directory') blockedDirectories.add(targetPath);
     }
 
     if (conflicts.length > 0) {

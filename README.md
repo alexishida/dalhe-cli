@@ -7,7 +7,7 @@ CLI for bootstrapping projects with Dalhe base files.
 `dalhe init` copies the template from `src/template/init` into the current directory, prepares the initial project structure, and runs `openspec init --tools claude,codex`.
 
 `dalhe skill` lists skills from the official git repository, and installs, removes, and updates skills maintained in `src/template/skills`, publishing them globally for Codex and Claude Code.
-Official skills do not use prefixes.
+Official skills use the `dl-` prefix.
 
 `dalhe update` updates the global CLI installation and also updates `OpenSpec`.
 
@@ -83,6 +83,8 @@ dalhe skill install <skill-name>
 dalhe skill install-all
 dalhe skill uninstall <skill-name>
 dalhe skill uninstall-all
+dalhe skill update <skill-name>
+dalhe skill update
 dalhe skill update-all
 dalhe update
 dalhe --help
@@ -96,6 +98,8 @@ dalhe -v
 - Copies all template files into current folder.
 - Creates required directories automatically.
 - Blocks overwrites when a conflict is found.
+- Reports a conflict when a file or symbolic link occupies a required directory, before copying any template files.
+- Uses exclusive file copies so a file created after the initial conflict check is not overwritten.
 - If `openspec` is not available in `PATH`, runs `npm install -g @fission-ai/openspec@latest`.
 - After copying, runs `openspec init --tools claude,codex` in current folder.
 - This mode avoids the interactive OpenSpec menu and installs configuration directly for Claude Code and Codex.
@@ -120,9 +124,11 @@ dalhe -v
 Lists all skills available in the official git repository (`src/template/skills`), fetched directly from GitHub.
 
 If the remote repository is unreachable or not configured, it falls back to listing the skills shipped with the currently installed CLI version.
+The remote request has a 5-second timeout, including reading the response body. Invalid responses also trigger the local fallback.
 
 Currently included skills:
 
+- `dl-matching-decomp`: reconstructing source to match reference binaries, with reproducible builds and byte-for-byte verification.
 - `dl-rails-8`: support for development, refactoring, and review of Rails 8 apps.
 - `dl-rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
 - `dl-nodejs-dev`: support for developing and maintaining Node.js projects.
@@ -135,6 +141,7 @@ dalhe skill list
 ```
 
 To force listing the installed version locally (no network), set `DALHE_CLI_SKIP_REMOTE_SKILL_LIST=1`.
+Local listing checks template files concurrently and skips global installation status checks. Bulk installation and removal also skip this redundant status scan.
 
 ### Installation
 
@@ -144,6 +151,9 @@ Installs a skill globally in both environments:
 - Codex without `CODEX_HOME`: uses `~/.codex/skills/<skill-name>` on Linux and `%USERPROFILE%\.codex\skills\<skill-name>` on Windows.
 - Claude Code: copies entire skill folder to `~/.claude/skills/<skill-name>` on Linux and `%USERPROFILE%\.claude\skills\<skill-name>` on Windows.
 - If skill already exists in global destination, that skill folder is replaced with current template version.
+- Skill names must be directory names: `/`, `\`, `:` and null characters are rejected, as are the names `.` and `..`.
+- Templates must contain a `SKILL.md` file; a directory with that name is not a valid template.
+- Creates a Claude Code command at `~/.claude/commands/<skill-name>.md`, which is also removed on uninstallation.
 
 ```bash
 dalhe skill install dl-rails-8
@@ -173,11 +183,30 @@ Removes all skills shipped with this CLI from both global destinations.
 dalhe skill uninstall-all
 ```
 
-### Bulk update
+### Update from GitHub
 
-Reinstalls all skills from this CLI that are already installed in at least one managed destination, syncing current template version to Codex and Claude Code.
+Updates an installed skill directly from `src/template/skills` in the latest commit of the official GitHub repository's default branch. You do not need to update the CLI first.
 
 ```bash
+dalhe skill update dl-rails-8
+```
+
+- Requires the skill to be installed in at least one managed destination (Codex, Claude Code, or its Claude command).
+- Downloads the entire skill, including references, scripts, and binary assets, from the same commit. Script executable permissions are preserved on systems that support them.
+- Replaces the installed folders in Codex and Claude Code and refreshes the Claude command. Local edits and obsolete files inside these folders are replaced or removed.
+- Downloads and validates the selected skills in a temporary directory before replacing installed files. Network or download validation failures leave installed skills unchanged and return an error; updates never fall back to bundled templates.
+- Requires internet access to GitHub. Requests have a 5-second timeout each; GitHub API errors, including rate limits, are reported.
+- Downloads up to four files concurrently, without requiring Git or additional dependencies.
+- Rejects remote symbolic links, submodules, and unsafe paths.
+- `DALHE_CLI_SKIP_REMOTE_SKILL_LIST=1` only affects listing; it does not disable remote updates.
+
+### Bulk update
+
+Updates all skills present in the official GitHub repository that are already installed in at least one managed destination. This includes installed skills absent from the bundled CLI templates. Skills absent from GitHub are left untouched; uninstalled skills are not installed.
+
+```bash
+dalhe skill update
+# Equivalent:
 dalhe skill update-all
 ```
 
@@ -193,7 +222,7 @@ Behavior:
 
 - Runs `npm install -g git+https://github.com/alexishida/dalhe-cli.git`.
 - Then runs `npm install -g @fission-ai/openspec@latest`.
-- Then syncs the globally installed skills (equivalent to `dalhe skill update-all`), updating installed skills in Codex and Claude Code to the current template version.
+- Then syncs the globally installed skills directly from GitHub (equivalent to `dalhe skill update-all`).
 - Uses `npm.cmd` on Windows.
 - Uses `npm` on Linux.
 - Requires `npm` to be installed and permission to update global packages.

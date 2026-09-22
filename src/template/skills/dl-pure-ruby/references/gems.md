@@ -38,12 +38,11 @@ Follow semantic versioning: `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for
 # frozen_string_literal: true
 
 require_relative "my_gem/version"
-require_relative "my_gem/parser"
-
 module MyGem
   class Error < StandardError; end
-  # public API can live here or be delegated to classes above
 end
+
+require_relative "my_gem/parser" # can now subclass MyGem::Error
 ```
 
 Use `require_relative` for files inside your own gem; reserve `require` for stdlib and external gems.
@@ -116,4 +115,4 @@ Publishing (`gem push my_gem-0.1.0.gem`) requires a RubyGems account — only me
 
 ## Zero-dependency discipline
 
-For a "pure Ruby" gem, keep `add_dependency` empty. Lean on the stdlib (`json`, `set`, `csv`, `uri`, `net/http`, `digest`, `securerandom`, `fileutils`). If you must add a runtime dependency, justify it and pin it with `~>`.
+For a stdlib-oriented gem, keep runtime dependencies minimal, but declare any library the supported Ruby versions do not ship. Do not remove an existing dependency simply to make the gemspec look dependency-free. Lean on the stdlib (`json`, `set`, `csv`, `uri`, `net/http`, `digest`, `securerandom`, `fileutils`). If you must add a runtime dependency, justify it and pin it with `~>`.

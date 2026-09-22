@@ -38,3 +38,20 @@ Each test must be independent and order-agnostic: set up and tear down its own s
 ## Coverage
 
 Use `node --test --experimental-test-coverage` or the runner's coverage flag. Treat coverage as a smoke detector, not a target — high coverage of trivial code is worthless, and a meaningful test of a tricky branch is worth more than chasing a percentage. Prioritize covering error paths and edge cases, which are the ones that actually break in production.
+
+## Regression scenarios by boundary
+
+| Boundary | Exercise | Observable assertion |
+|---|---|---|
+| CLI | help, invalid flags, piped output, failing command | stdout/stderr and exit code, including spawn errors rather than only status |
+| Filesystem | existing file, nested path, symlink, missing source, failure after staging | existing content is preserved; no writes escape the target; temporary files are removed |
+| Network | HTTP error, malformed JSON, body that stalls after headers | deadline aborts the whole read; no silent stale fallback unless part of the contract |
+| Concurrency | one worker fails while siblings are writing | cleanup waits for all workers; bounded number of operations is active |
+| Persistence | duplicate request, rollback, retry | constraints hold and external effects are not duplicated |
+| Package | install packed tarball into a temporary prefix | executable and referenced assets work outside the source checkout |
+
+Use a temporary directory per test with runner cleanup hooks. Restore mocks, environment changes, and listeners even after an assertion fails. Fake home directories and package prefixes protect the user's actual configuration. Unit tests should not install global packages into the real home or contact live services.
+
+Drive races with deferred promises or barriers rather than arbitrary sleeps. Advance a fake clock only if the operation actually uses that clock. For real timeout tests, assert cancellation and completion with a generous outer test deadline, not an exact elapsed millisecond count.
+
+A failing subprocess can expose `result.error` even when the status is absent or misleading. Include both streams and that error in failure diagnostics. Avoid shell commands when an argument array can exercise the same contract on Linux and Windows.

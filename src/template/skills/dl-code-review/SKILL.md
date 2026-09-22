@@ -1,105 +1,54 @@
 ---
 name: dl-code-review
-description: >-
-  Analyzes Rails code quality, architecture, and patterns without modifying
-  code. Use when the user wants a code review, quality analysis, architecture
-  audit, or when user mentions review, audit, code quality, anti-patterns,
-  or SOLID principles. WHEN NOT: Actually implementing fixes (use specialist
-  agents), writing new tests, or generating new features.
-agent: general-purpose
-model: sonnet
-allowed-tools: Read, Grep, Glob, Bash
-user-invocable: true
-argument-hint: "[file or directory path]"
+description: Review a Rails change, file, or pull request for concrete correctness, authorization, data integrity, performance, and maintainability defects. Use for focused read-only code review. For an application-wide Rails security or Oracle/MariaDB audit, use the dedicated audit workflow if available. Do not implement fixes unless the user requests them.
 ---
 
-# Code Review
+# Rails code review
 
-You are an expert code reviewer specialized in Rails applications.
-You NEVER modify code — you only read, analyze, and report findings.
+Review observable behavior and failure modes. A class size, missing service object, or unfamiliar style is not itself a bug. Keep the review read-only unless the user also requests changes.
 
-## Review Process
+## Establish scope and baseline
 
-### Step 1: Run Static Analysis
+1. Read project instructions, Ruby/Rails versions, schema, test configuration, and existing authorization conventions. Do not assume Pundit, RSpec, PostgreSQL, or a particular service-object pattern.
+2. For a working-tree review, inspect `git status --short`, unstaged and staged diffs. For a branch review, identify the intended base and compare from the merge base. Include untracked files only when part of the requested change.
+3. Read full changed methods, their callers, callbacks, views/serializers, and relevant tests. Trace changed data from entry point to persistence or external effects.
+4. Separate regressions introduced by the change from pre-existing problems. Review the requested scope first; expand only to establish a concrete impact.
 
-```bash
-bin/brakeman
-bin/bundler-audit
-bundle exec rubocop
-```
+## Review by failure scenario
 
-### Step 2: Analyze Code
+| Area | Trace | Evidence needed before reporting |
+|---|---|---|
+| Authorization | actor → scope/policy → record → response | A reachable action permits another tenant's or role's operation; check inherited filters and policy scopes first |
+| Writes | validation → transaction → constraints → external effects | A failure or concurrent request leaves invalid state, duplicates, or sends an effect before a rollback |
+| Background jobs | enqueue → serialization → execution → retry | A retry duplicates an effect, the record can disappear, or a worker can observe an uncommitted change |
+| Queries | relation construction → enumeration → association access | SQL/query count or a trace showing repeated queries; read the actual indexes and adapter before proposing one |
+| Migrations | old app/new schema and new app/old schema | Locking, data conversion, incompatible nullability, or deployment ordering that can interrupt the running app |
+| Cache | key → tenant/user scope → invalidation | Stale or cross-user values under a named update/request sequence |
+| API/UI | input → status/serialization → consumer | A missing/changed field, escaping rule, failure status, or pagination contract breaks an existing caller |
 
-Read and evaluate against these focus areas:
+For a possible N+1, inspect whether associations are already loaded. `any?` without a block can use an existence query on an unloaded relation; do not label it as loading every row without verifying the call shape. For uniqueness, inspect the database constraint, including tenant scope and soft-deletion conditions.
 
-1. **SOLID Principles** — SRP violations, hard-coded conditionals, missing DI
-2. **Rails Anti-Patterns** — Fat controllers/models, N+1 queries, callback hell
-3. **Security** — Mass assignment, SQL injection, XSS, missing authorization
-4. **Performance** — Missing indexes, inefficient queries, caching opportunities
-5. **Code Quality** — Naming, duplication, method complexity, test coverage
+Transactions do not roll back HTTP calls. For a job or email, identify the outermost commit boundary and queue-adapter behavior before suggesting `after_commit`, explicit enqueueing, or an outbox. A method-level transaction may be nested inside a caller's transaction.
 
-### Step 3: Structured Feedback
+## Validate hypotheses
 
-Format your review as:
+- Run existing focused tests and available project tools, for example `bundle exec rubocop --format json`, `bundle exec brakeman -q -f json`, or `bundle exec bundler-audit check` when installed and relevant. Do not auto-correct during a read-only review.
+- Record command, exit status, and limitations. Missing tools or stale advisory data mean unverified, not clean. Do not hide failures with shell redirection or `|| true`.
+- Prefer a minimal reproduction using fixtures or temporary data. Do not run a migration, deployment, or a destructive production query just to substantiate a finding.
+- A scanner warning is a lead: follow the value to a reachable sink, check sanitization/allowlists, and eliminate false positives.
+- For performance, name the workload and compare query count, latency, allocations, or memory with the same input. Distinguish measured results from predicted improvement.
 
-1. **Summary:** High-level overview
-2. **Critical Issues (P0):** Security, data loss risks
-3. **Major Issues (P1):** Performance, maintainability
-4. **Minor Issues (P2-P3):** Style, improvements
-5. **Positive Observations:** What was done well
+## Findings and priority
 
-For each issue: **What** → **Where** (file:line) → **Why** → **How** (code example)
+For each confirmed finding provide:
 
-## Anti-Pattern Examples
+- **Priority and title:** P0 for an immediate widespread blocker; P1 for a serious failure on a realistic path; P2 for a bounded defect; P3 for a small actionable issue. Severity follows impact and reachability, not category alone.
+- **Location:** shortest useful `file:line` reference.
+- **Trigger:** actor, input/state, and execution path required.
+- **Actual vs expected:** what fails and who is affected.
+- **Evidence:** minimal code/SQL/test evidence; distinguish observed and inferred results.
+- **Fix direction:** smallest correction consistent with this project, plus the regression scenario to test.
 
-**Fat Controller → Service Object:**
-```ruby
-# Bad
-class EntitiesController < ApplicationController
-  def create
-    @entity = Entity.new(entity_params)
-    @entity.calculate_metrics
-    @entity.send_notifications
-    if @entity.save then ... end
-  end
-end
+Example: “P1 — Duplicate invoice delivery after retry. `jobs/send_invoice_job.rb:24` sends before recording delivery; failure of the update causes the retry to send again. Use the provider's idempotency key and test a failure after the provider accepts the request.” Do not assert this finding unless those operations actually appear in the reviewed code.
 
-# Good
-class EntitiesController < ApplicationController
-  def create
-    result = Entities::CreateService.call(entity_params)
-  end
-end
-```
-
-**N+1 Query → Eager Loading:**
-```ruby
-# Bad
-@entities.each { |e| e.user.name }
-
-# Good
-@entities = Entity.includes(:user)
-```
-
-**Missing Authorization:**
-```ruby
-# Bad
-@entity = Entity.find(params[:id])
-
-# Good
-@entity = Entity.find(params[:id])
-authorize @entity
-```
-
-## Review Checklist
-
-- [ ] Security: Brakeman clean
-- [ ] Dependencies: Bundler Audit clean
-- [ ] Style: RuboCop compliant
-- [ ] Architecture: SOLID principles respected
-- [ ] Patterns: No fat controllers/models
-- [ ] Performance: No N+1, indexes present
-- [ ] Authorization: Pundit policies used
-- [ ] Tests: Coverage adequate
-- [ ] Naming: Clear, consistent
-- [ ] Duplication: No repeated code
+Lead with actionable findings ordered by priority. Follow with remaining uncertainties and checks performed. If none are confirmed, say so and identify the areas not exercised. Keep optional refactors separate from defects; do not inflate the report with praise or generic SOLID checklists.

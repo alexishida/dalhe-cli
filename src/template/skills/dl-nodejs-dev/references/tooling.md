@@ -18,7 +18,7 @@ Toolchain conventions: package.json, TypeScript, linting, formatting, env.
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
-    "dev": "node --watch --env-file=.env src/server.ts",
+    "dev": "tsc --watch -p tsconfig.json",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "test": "node --test",
@@ -30,7 +30,7 @@ Toolchain conventions: package.json, TypeScript, linting, formatting, env.
 
 Pin Node in `engines` and commit a `.nvmrc` matching it. Commit the lockfile (`package-lock.json` / `pnpm-lock.yaml`). Prefer exact or caret ranges deliberately — don't leave everything on wildcard.
 
-Recent Node (20.6+) runs `.ts` and reads `.env` natively via `--env-file` and type stripping, so a heavy dev toolchain (ts-node/nodemon/dotenv) is often unnecessary for new projects. Use them only if the Node target predates these features.
+The example compiles TypeScript before running `dist/server.js`; its watch script rebuilds but does not restart the server. Keep the existing development runner if it already handles both. Node 20.6 introduced `--env-file`, not native TypeScript execution. Native type stripping arrived in Node 22.6 and its flags/defaults vary by release; it does not type-check or honor all `tsconfig` transformations. Check the [Node TypeScript documentation](https://nodejs.org/api/typescript.html) for the deployed runtime. Run `tsc --noEmit` separately when using a stripping runner.
 
 ## Scripts
 

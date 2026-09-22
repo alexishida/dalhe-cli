@@ -81,7 +81,7 @@ module Orders
 end
 ```
 
-Keep services side-effect-aware: wrap multi-writes in a transaction, raise inside it so the rollback is automatic, rescue at the boundary.
+Keep services side-effect-aware: wrap related writes in a transaction and rescue at the boundary. This example assumes it owns the outer transaction; if called inside another transaction, its return is not proof of commit. Enqueue after the actual commit using the project's adapter-supported mechanism. Use idempotency or an outbox when lost/duplicate delivery would violate the contract. Never accept a checkout total from untrusted params without server-side calculation.
 
 ## Query object
 
@@ -184,7 +184,7 @@ class Users::Register
 end
 ```
 
-Keep only side-effect-free, in-model massaging as callbacks (or prefer `normalizes`):
+The registration sketch above does not provide atomic creation/settings or reliable external delivery. For those requirements, persist local state together and dispatch external effects after the outer commit with an explicit retry/idempotency policy. Keep in-model normalization callbacks (or prefer `normalizes`):
 
 ```ruby
 normalizes :email, with: ->(e) { e.strip.downcase }
@@ -198,7 +198,7 @@ articles.each { |a| puts a.author.name }          # BEFORE
 Article.includes(:author).each { |a| puts a.author.name }  # AFTER
 
 # Booleans: don't instantiate records to ask a yes/no question
-User.where(admin: true).any?   # BEFORE — loads records
+User.where(admin: true).to_a.any? # BEFORE — materializes records unnecessarily
 User.where(admin: true).exists? # AFTER — SELECT 1 LIMIT 1
 
 # Large batches: don't load everything into memory

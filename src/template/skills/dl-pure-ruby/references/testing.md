@@ -1,6 +1,6 @@
 # Testing Pure Ruby
 
-Default to **Minitest** — it ships with Ruby, so a pure-Ruby project stays dependency-free. Use RSpec only when the user prefers it or the project already uses it.
+Use **Minitest** when it fits the project; verify it is installed and declare a development dependency when needed. Ruby 4 does not bundle Minitest. Use RSpec only when the user prefers it or the project already uses it.
 
 ## Minitest
 
@@ -59,14 +59,15 @@ ruby -Itest test/my_gem/parser_test.rb   # one file
 rake test                                # whole suite via Rakefile
 ```
 
-`-Itest` adds `test/` to the load path so `require_relative` and `require` resolve.
+`-Itest` adds `test/` to the load path for `require`; `require_relative` resolves against the calling file independently of that option.
 
-## Stubbing and mocking with stdlib
+## Stubbing and mocking with Minitest
 
 Minitest includes mocking — no extra gem needed.
 
 ```ruby
 require "minitest/autorun"
+require "minitest/mock"
 
 class ClientTest < Minitest::Test
   def test_uses_response

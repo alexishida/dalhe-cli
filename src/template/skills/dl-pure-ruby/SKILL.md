@@ -1,6 +1,6 @@
 ---
 name: dl-pure-ruby
-description: Write clean, idiomatic, dependency-free Ruby such as plain scripts, CLI tools, libraries, and gems using only the standard library. Use this skill whenever the user is writing Ruby outside of a web framework, including command-line utilities, automation scripts, data-processing tasks, algorithms, parsers, gems, or any ".rb" file where Rails, Sinatra, or Hanami is NOT involved. Trigger it even when the user just says "write a Ruby script", "make a CLI in Ruby", "refactor this Ruby class", or pastes plain Ruby and asks for help, since the goal is stdlib-only, framework-free Ruby done the idiomatic way. Do NOT use for Rails-specific work like ActiveRecord, controllers, or migrations, which belong to a Rails skill.
+description: Implement and test Ruby scripts, CLIs, libraries, and gems outside Rails or other web frameworks. Prefer the standard library and preserve existing dependencies and supported Ruby versions. Use for parsers, automation, streaming data processing, and idiomatic Ruby refactoring.
 ---
 
 # Pure Ruby
@@ -11,7 +11,7 @@ Guidance for writing clean, idiomatic Ruby using only the language and its stand
 
 Before writing code, settle three things (ask only if the conversation doesn't already answer them):
 
-1. **Ruby version.** Default to the modern stable line (3.x) and use its features freely (endless methods, pattern matching, `Data.define`, `it` block param in 3.4+). If the user is locked to an older version, scale back accordingly.
+1. **Ruby version.** Read `.ruby-version`, the gemspec, Gemfile.lock, and CI matrix before choosing syntax. Do not infer the runtime from this skill: Ruby 3.x and 4.x have different bundled libraries. `Data.define` requires Ruby 3.2+; test at the minimum supported version.
 2. **Deliverable shape.** A throwaway script, a reusable library file, a CLI tool, or a full gem? This decides the structure (see "Structuring code" below).
 3. **Dependencies.** Pure Ruby means stdlib-only by default. Reach for `optparse`, `json`, `set`, `csv`, `net/http`, `fileutils`, `tempfile`, `logger`, `pp` before considering a gem. If a gem genuinely helps, name it and say why.
 
@@ -32,7 +32,7 @@ ensure
 end
 ```
 
-**Let truthiness and safe navigation do the work.** Only `nil` and `false` are falsy. Use `&.` to chain through possibly-nil receivers, `||=` for memoization, and `fetch` (not `[]`) when a missing key is a bug you want surfaced.
+**Let truthiness and safe navigation do the work.** Only `nil` and `false` are falsy. Use `&.` only when nil is an expected state. `||=` recomputes false/nil values; use an explicit initialized flag or `defined?` when those values must be cached. Use `fetch` (not `[]`) when a missing key is a bug you want surfaced.
 
 **Guard clauses over nested conditionals.** Return or raise early; keep the happy path un-indented.
 
@@ -81,7 +81,7 @@ Validate inputs at the boundary and raise `ArgumentError`/`KeyError` with a mess
 
 ## Testing
 
-Default to **Minitest** (stdlib — no extra dependency) unless the user prefers RSpec. Write tests for public behavior, not private methods. Cover the happy path plus the edge cases you guarded against (nil, empty, boundary values, malformed input). See `references/testing.md` for Minitest and RSpec patterns and a sample run command.
+Use the existing test runner. For a new project, Minitest is a small option, but verify availability and declare it as a development dependency when needed; it is not bundled with every Ruby version. Write tests for public behavior, not private methods. Cover the happy path plus the edge cases you guarded against (nil, empty, boundary values, malformed input). See `references/testing.md` for Minitest and RSpec patterns and a sample run command.
 
 ## Style and verification
 
@@ -113,3 +113,18 @@ Read these as needed; don't load them upfront:
 - `references/cli.md` — Complete `OptionParser` CLI pattern with subcommands, exit codes, and stdin handling.
 - `references/gems.md` — Gem layout, `.gemspec`, versioning, and bundler-free workflows.
 - `references/testing.md` — Minitest and RSpec templates, fixtures, mocking with stdlib, and test running.
+
+## I/O, data, and subprocess contracts
+
+- Use `File.foreach` or `CSV.foreach` for large inputs; `read`, `map`, and `group_by` can retain the whole dataset. Specify text encoding or binary mode and test invalid byte sequences.
+- Use `Integer(value, 10)` for strict numeric input rather than silently accepting malformed text with `to_i`. State whether empty, missing, and zero are distinct.
+- For replacing a file, write a temporary file on the same filesystem and rename after successful validation/flush. Preserve the old file on parse/write failure; define permission and overwrite behavior.
+- Use argument-array subprocess APIs and check `Process::Status#success?`. Treat filenames beginning with `-` as potential options; use the called tool's option terminator where supported. Avoid a shell when it adds no value.
+- Configure connect/read/write deadlines for HTTP clients supported by the project's Ruby. Bound response size and redirects. Retry only known transient failures for idempotent operations.
+- Keep `exit`, signal handling, and global `ARGV` mutation in the CLI entry point. An importable parser or library returns values or raises domain errors.
+
+## Validation examples
+
+For an importer, test a malformed row after a valid row, duplicate identifiers, invalid encoding, a large stream, and an unwritable output. Assert whether partial results are permitted. For a CLI, exercise help and invalid options with captured stdout/stderr and status. For a gem, build and require the installed artifact in a temporary GEM_HOME so missing packaged files are detected.
+
+Standard-library availability is version-dependent: libraries may become default, bundled, or separately installed gems. Declare required packaged libraries in the gemspec when the supported runtime no longer provides them. “Pure Ruby” describes implementation/runtime choices, not a reason to leave dependencies undeclared.

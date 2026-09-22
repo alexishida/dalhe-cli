@@ -11,7 +11,7 @@ export class SkillCommand {
   }
 
   get description() {
-    return 'Lists, installs, removes, and updates global skills.';
+    return 'Lista, instala, remove e atualiza skills globais pelo GitHub.';
   }
 
   helpText() {
@@ -22,9 +22,11 @@ export class SkillCommand {
       '  dalhe skill install-all',
       '  dalhe skill uninstall <skill-name>',
       '  dalhe skill uninstall-all',
+      '  dalhe skill update [skill-name]',
       '  dalhe skill update-all',
       '',
       'Manages global skill installation for Codex and Claude Code.',
+      'update busca a skill mais recente no GitHub; sem nome, atualiza todas as instaladas.',
       '',
     ].join('\n');
   }
@@ -66,6 +68,11 @@ export class SkillCommand {
           message: this.#uninstallAllMessage(await this.skillManager.uninstallAll()),
         };
 
+      case 'update':
+        this.#assertNoExtraArgs(rest, 'update');
+        if (!skillName) return { message: this.#updateAllMessage(await this.skillManager.updateAll()) };
+        return { message: this.#updateMessage(await this.skillManager.update(skillName)) };
+
       case 'update-all':
         this.#assertNoArgs([skillName, ...rest], 'update-all');
         return {
@@ -74,7 +81,7 @@ export class SkillCommand {
 
       default:
         throw new CliError(
-          `Invalid skill subcommand: ${subcommand || '(empty)'}. Use list, install, install-all, uninstall, uninstall-all, or update-all.`,
+          `Invalid skill subcommand: ${subcommand || '(empty)'}. Use list, install, install-all, uninstall, uninstall-all, update, or update-all.`,
           { code: 'INVALID_SUBCOMMAND' },
         );
     }
@@ -82,13 +89,13 @@ export class SkillCommand {
 
   async #listSkills() {
     if (!this.remoteSkillRepository) {
-      return { skills: await this.skillManager.list(), source: 'installed' };
+      return { skills: await this.skillManager.list({ includeStatus: false }), source: 'installed' };
     }
 
     try {
       return { skills: await this.remoteSkillRepository.list(), source: 'repository' };
     } catch {
-      return { skills: await this.skillManager.list(), source: 'installed' };
+      return { skills: await this.skillManager.list({ includeStatus: false }), source: 'installed' };
     }
   }
 
@@ -163,12 +170,22 @@ export class SkillCommand {
 
   #updateAllMessage(result) {
     if (result.totalUpdated === 0) {
-      return 'No installed skills to update.\n';
+      return 'Nenhuma skill instalada disponível no GitHub para atualizar.\n';
     }
 
     return [
-      `${result.totalUpdated} skill${result.totalUpdated > 1 ? 's' : ''} updated globally.`,
+      `${result.totalUpdated} skill(s) atualizada(s) globalmente pelo GitHub.`,
       ...result.updatedSkills.map((skill) => `- ${skill.name}`),
+      '',
+    ].join('\n');
+  }
+
+  #updateMessage(result) {
+    return [
+      `Skill "${result.name}" atualizada pelo GitHub.`,
+      `Commit: ${result.commit}`,
+      `Codex: ${result.codexDir}`,
+      `Claude Code: ${result.claudeDir}`,
       '',
     ].join('\n');
   }

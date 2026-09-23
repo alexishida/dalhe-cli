@@ -56,6 +56,7 @@ test('git package installs as executable global command', async () => {
         cacheDir,
         'install',
         '-g',
+        '--allow-git=all',
         `git+${pathToFileURL(packageDir).href}`,
         '--prefix',
         prefixDir,

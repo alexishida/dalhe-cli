@@ -43,8 +43,11 @@ npm install -g dalhe-cli
 Install directly from repository:
 
 ```bash
-npm install -g git+https://github.com/alexishida/dalhe-cli.git
+npm install -g --allow-git=all git+https://github.com/alexishida/dalhe-cli.git
 ```
+
+`--allow-git=all` is required by npm 12+, which blocks Git dependencies by
+default. It enables Git fetching for this command only.
 
 `OpenSpec` is installed automatically on the first `dalhe init` if it is not already available in `PATH`.
 
@@ -221,7 +224,7 @@ dalhe update
 
 Behavior:
 
-- Runs `npm install -g git+https://github.com/alexishida/dalhe-cli.git`.
+- Runs `npm install -g --allow-git=all git+https://github.com/alexishida/dalhe-cli.git`.
 - Then runs `npm install -g @fission-ai/openspec@latest`.
 - Then syncs the globally installed skills directly from GitHub (equivalent to `dalhe skill update-all`).
 - Uses `npm.cmd` on Windows.

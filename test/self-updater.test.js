@@ -24,7 +24,7 @@ test('updates dalhe-cli and openspec via npm install -g', async () => {
   assert.deepEqual(calls, [
     {
       command: npmCommand,
-      args: ['install', '-g', 'git+https://github.com/alexishida/dalhe-cli.git'],
+      args: ['install', '-g', '--allow-git=all', 'git+https://github.com/alexishida/dalhe-cli.git'],
       env: {
         [SKIP_OPENSPEC_POSTINSTALL_ENV]: '1',
       },
@@ -54,7 +54,7 @@ test('uses npm.cmd on Windows', async () => {
   assert.deepEqual(calls, [
     {
       command: 'npm.cmd',
-      args: ['install', '-g', 'git+https://github.com/alexishida/dalhe-cli.git'],
+      args: ['install', '-g', '--allow-git=all', 'git+https://github.com/alexishida/dalhe-cli.git'],
       env: {
         [SKIP_OPENSPEC_POSTINSTALL_ENV]: '1',
       },
@@ -81,7 +81,7 @@ test('update command prints executed install command and synced skills', async (
       async update() {
         return {
           command: 'npm',
-          args: ['install', '-g', 'git+https://github.com/alexishida/dalhe-cli.git'],
+          args: ['install', '-g', '--allow-git=all', 'git+https://github.com/alexishida/dalhe-cli.git'],
           target: 'git+https://github.com/alexishida/dalhe-cli.git',
           openspec: {
             command: 'npm',
@@ -105,7 +105,7 @@ test('update command prints executed install command and synced skills', async (
 
   assert.match(result.message, /dalhe-cli updated successfully/);
   assert.match(result.message, /OpenSpec: @fission-ai\/openspec@latest/);
-  assert.match(result.message, /- npm install -g git\+https:\/\/github\.com\/alexishida\/dalhe-cli\.git/);
+  assert.match(result.message, /- npm install -g --allow-git=all git\+https:\/\/github\.com\/alexishida\/dalhe-cli\.git/);
   assert.match(result.message, /- npm install -g @fission-ai\/openspec@latest/);
   assert.match(result.message, /Skills synced globally:/);
   assert.match(result.message, /- rails8/);
@@ -118,7 +118,7 @@ test('update command reports when no skills are installed to sync', async () => 
       async update() {
         return {
           command: 'npm',
-          args: ['install', '-g', 'git+https://github.com/alexishida/dalhe-cli.git'],
+          args: ['install', '-g', '--allow-git=all', 'git+https://github.com/alexishida/dalhe-cli.git'],
           target: 'git+https://github.com/alexishida/dalhe-cli.git',
           openspec: {
             command: 'npm',

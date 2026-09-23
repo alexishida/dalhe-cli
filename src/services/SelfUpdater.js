@@ -18,7 +18,7 @@ export class SelfUpdater {
   async update() {
     const target = this.#installTarget();
     const command = this.#npmCommand();
-    const args = ['install', '-g', target];
+    const args = ['install', '-g', '--allow-git=all', target];
     const openspecArgs = ['install', '-g', OPENSPEC_PACKAGE];
 
     await this.runCommand({

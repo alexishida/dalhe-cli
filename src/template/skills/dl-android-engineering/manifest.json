@@ -1,0 +1,28 @@
+{
+  "name": "dl-android-engineering",
+  "format": "Agent Skills / SKILL.md",
+  "languages": [
+    "pt-BR",
+    "Kotlin"
+  ],
+  "targets": [
+    "Android smartphones",
+    "Android tablets",
+    "Foldables",
+    "Android TV / Google TV",
+    "Android Auto",
+    "Android Automotive OS"
+  ],
+  "files": [
+    "INSTALL.md",
+    "SKILL.md",
+    "assets/task-intake.md",
+    "references/architecture.md",
+    "references/maintenance.md",
+    "references/performance.md",
+    "references/platforms-adaptive.md",
+    "references/platforms-cars.md",
+    "references/platforms-tv.md",
+    "references/quality.md"
+  ]
+}

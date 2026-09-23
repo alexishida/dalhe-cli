@@ -132,6 +132,8 @@ The remote request has a 5-second timeout, including reading the response body. 
 Currently included skills:
 
 - `dl-matching-decomp`: reconstructing source to match reference binaries, with reproducible builds and byte-for-byte verification.
+- `dl-android-engineering`: development, maintenance, debugging, review, and optimization of Android applications in Kotlin.
+- `dl-c-cpp-expert`: implementation, refactoring, review, debugging, and performance optimization for C and C++ projects.
 - `dl-rails-8`: support for development, refactoring, and review of Rails 8 apps.
 - `dl-rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
 - `dl-nodejs-dev`: support for developing and maintaining Node.js projects.

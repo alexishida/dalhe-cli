@@ -1,0 +1,21 @@
+{
+  "name": "rayban-meta-sdk",
+  "version": "1.0.0",
+  "description": "Specialist guidance for building Ray-Ban Meta and Meta AI glasses software with the Meta Wearables Device Access Toolkit on Android/iOS, plus Display Web Apps when applicable.",
+  "author": {
+    "name": "Community skill package"
+  },
+  "keywords": [
+    "ray-ban-meta",
+    "meta-wearables",
+    "dat",
+    "android",
+    "ios",
+    "display",
+    "sdk",
+    "claude"
+  ],
+  "skills": [
+    "./skills/"
+  ]
+}

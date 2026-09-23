@@ -135,6 +135,7 @@ Currently included skills:
 - `dl-pure-ruby`: support for developing and maintaining pure Ruby projects.
 - `dl-code-review`: Rails code quality, architecture, and pattern analysis without modifying code.
 - `dl-electron-react`: building, scaffolding, and structuring Electron desktop apps with React and TypeScript.
+- `dl-rayban-meta-sdk`: building and integrating iOS/Android apps with Meta Wearables DAT for Ray-Ban Meta glasses, including the Gen 1 mobile path.
 
 ```bash
 dalhe skill list

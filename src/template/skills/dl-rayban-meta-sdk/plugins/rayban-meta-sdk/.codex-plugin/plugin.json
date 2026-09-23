@@ -1,0 +1,27 @@
+{
+  "name": "rayban-meta-sdk",
+  "version": "1.0.0",
+  "description": "Specialist guidance for building Ray-Ban Meta and Meta AI glasses software with the Meta Wearables Device Access Toolkit on Android/iOS, plus Display Web Apps when applicable.",
+  "keywords": [
+    "ray-ban-meta",
+    "meta-wearables",
+    "dat",
+    "android",
+    "ios",
+    "display",
+    "sdk",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Ray-Ban Meta SDK",
+    "shortDescription": "Build and debug Meta AI glasses apps with DAT and Display Web Apps.",
+    "longDescription": "Unified Codex plugin for Meta Wearables development. It routes between Android DAT, iOS DAT and Meta Ray-Ban Display Web Apps; verifies current APIs when possible; and includes camera, audio, testing, privacy and release guidance.",
+    "developerName": "Community skill package",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ]
+  }
+}

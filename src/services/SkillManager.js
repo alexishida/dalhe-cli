@@ -34,12 +34,38 @@ export class SkillManager {
     return Promise.all(skillNames.map((name) => this.#skillStatus(name)));
   }
 
+  async status(skillName) {
+    assertSkillName(skillName);
+    return this.#skillStatus(skillName);
+  }
+
   async install(skillName) {
+    assertSkillName(skillName);
+    if (this.remoteSkillRepository) {
+      const snapshot = await this.#remoteSnapshot();
+      const skill = snapshot.skills.find((candidate) => candidate.name === skillName);
+      if (!skill) {
+        throw new CliError(`Skill não encontrada no GitHub: ${skillName}`, { code: 'REMOTE_SKILL_NOT_FOUND' });
+      }
+      const [result] = await this.#installRemoteSkills(snapshot, [skill]);
+      return result;
+    }
+
     const sourceDir = await this.#skillSourceDir(skillName);
     return this.#installSkill({ skillName, sourceDir });
   }
 
   async installAll() {
+    if (this.remoteSkillRepository) {
+      const snapshot = await this.#remoteSnapshot();
+      const installedSkills = await this.#installRemoteSkills(snapshot, snapshot.skills);
+
+      return {
+        totalInstalled: installedSkills.length,
+        installedSkills,
+      };
+    }
+
     const skills = await this.list({ includeStatus: false });
     const installedSkills = [];
 
@@ -54,7 +80,10 @@ export class SkillManager {
   }
 
   async uninstall(skillName) {
-    await this.#skillSourceDir(skillName);
+    assertSkillName(skillName);
+    if (!this.#isInstalled(await this.#skillStatus(skillName))) {
+      throw new CliError(`A skill "${skillName}" não está instalada.`, { code: 'SKILL_NOT_INSTALLED' });
+    }
     return this.#uninstallSkill(skillName);
   }
 
@@ -84,7 +113,7 @@ export class SkillManager {
     if (!skill) {
       throw new CliError(`Skill não encontrada no GitHub: ${skillName}`, { code: 'REMOTE_SKILL_NOT_FOUND' });
     }
-    const [result] = await this.#updateSkills(snapshot, [skill]);
+    const [result] = await this.#installRemoteSkills(snapshot, [skill]);
     return result;
   }
 
@@ -95,7 +124,7 @@ export class SkillManager {
       return this.#skillStatus(skill.name);
     }));
     const installedSkills = snapshot.skills.filter((skill, index) => this.#isInstalled(statuses[index]));
-    const updatedSkills = await this.#updateSkills(snapshot, installedSkills);
+    const updatedSkills = await this.#installRemoteSkills(snapshot, installedSkills);
     return {
       totalUpdated: updatedSkills.length,
       updatedSkills,
@@ -109,7 +138,7 @@ export class SkillManager {
     return this.remoteSkillRepository.snapshot();
   }
 
-  async #updateSkills(snapshot, skills) {
+  async #installRemoteSkills(snapshot, skills) {
     if (skills.length === 0) return [];
     const workspace = await mkdtemp(join(tmpdir(), 'dalhe-skill-update-'));
     try {

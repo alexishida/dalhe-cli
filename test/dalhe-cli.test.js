@@ -104,6 +104,24 @@ test('initializes project and runs openspec init', async () => {
   }
 });
 
+test('initializes project without OpenSpec when requested', async () => {
+  const workspace = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-init-no-openspec-'));
+  const markerFile = join(workspace, '.openspec-ran');
+
+  try {
+    const result = runCli(['init', '--no-openspec'], { cwd: workspace });
+
+    assert.match(result.stdout, /Project initialized in/);
+    assert.match(result.stdout, /OpenSpec: skipped/);
+    assert.equal(result.stderr, '');
+    assert.equal(result.status, 0);
+    await assert.rejects(() => readFile(markerFile, 'utf8'), { code: 'ENOENT' });
+    assert.equal((await readFile(join(workspace, 'AGENTS.md'), 'utf8')).length > 0, true);
+  } finally {
+    await rm(workspace, { force: true, recursive: true });
+  }
+});
+
 for (const updateArgs of [['update-all'], ['update'], ['update', 'dl-rails-8']]) {
   test(`updates installed skills from GitHub via skill ${updateArgs.join(' ')}`, async () => {
     const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-update-all-'));
@@ -122,7 +140,10 @@ for (const updateArgs of [['update-all'], ['update'], ['update', 'dl-rails-8']])
         `import { createGitHubFetch } from ${JSON.stringify(fixtureUrl)};`,
         `globalThis.fetch = createGitHubFetch({ 'dl-rails-8/SKILL.md': '# Latest GitHub version' });`,
       ].join('\n'));
-      const installResult = runCli(['skill', 'install', 'dl-rails-8'], { env });
+      const installResult = runCli(['skill', 'install', 'dl-rails-8'], {
+        env,
+        nodeArgs: ['--import', pathToFileURL(preloadFile).href],
+      });
 
       assert.equal(installResult.status, 0);
 
@@ -155,11 +176,20 @@ test('installs all available skills', async () => {
     HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
     HOMEPATH: fakeHome.slice(parsedHome.root.length - 1),
   };
+  const preloadFile = join(fakeHome, 'github-fetch.mjs');
 
   try {
-    const result = runCli(['skill', 'install-all'], { env });
+    const fixtureUrl = pathToFileURL(resolve(process.cwd(), 'test/helpers/github-fixture.js')).href;
+    await writeFile(preloadFile, [
+      `import { createGitHubFetch } from ${JSON.stringify(fixtureUrl)};`,
+      `globalThis.fetch = createGitHubFetch({ 'dl-rails-8/SKILL.md': '# Rails skill' });`,
+    ].join('\n'));
+    const result = runCli(['skill', 'install-all'], {
+      env,
+      nodeArgs: ['--import', pathToFileURL(preloadFile).href],
+    });
 
-    assert.match(result.stdout, /\d+ skills installed globally\./);
+    assert.match(result.stdout, /1 skill installed globally\./);
     assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);
@@ -185,9 +215,18 @@ test('uninstalls all available skills', async () => {
     HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
     HOMEPATH: fakeHome.slice(parsedHome.root.length - 1),
   };
+  const preloadFile = join(fakeHome, 'github-fetch.mjs');
 
   try {
-    const installResult = runCli(['skill', 'install-all'], { env });
+    const fixtureUrl = pathToFileURL(resolve(process.cwd(), 'test/helpers/github-fixture.js')).href;
+    await writeFile(preloadFile, [
+      `import { createGitHubFetch } from ${JSON.stringify(fixtureUrl)};`,
+      `globalThis.fetch = createGitHubFetch({ 'dl-rails-8/SKILL.md': '# Rails skill' });`,
+    ].join('\n'));
+    const installResult = runCli(['skill', 'install-all'], {
+      env,
+      nodeArgs: ['--import', pathToFileURL(preloadFile).href],
+    });
 
     assert.equal(installResult.status, 0);
 

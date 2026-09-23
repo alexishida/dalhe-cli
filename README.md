@@ -4,7 +4,7 @@ CLI for bootstrapping projects with Dalhe base files.
 
 ## What it does
 
-`dalhe init` copies the template from `src/template/init` into the current directory, prepares the initial project structure, and runs `openspec init --tools claude,codex`.
+`dalhe init` copies the template from `src/template/init` into the current directory, prepares the initial project structure, and runs `openspec init --tools claude,codex`. Use `dalhe init --no-openspec` to create only the base files without installing or running OpenSpec.
 
 `dalhe skill` lists skills from the official git repository, and installs, removes, and updates skills maintained in `src/template/skills`, publishing them globally for Codex and Claude Code.
 Official skills use the `dl-` prefix.
@@ -67,6 +67,7 @@ Go into folder where you want to create project base:
 
 ```bash
 dalhe init
+dalhe init --no-openspec
 ```
 
 Example:
@@ -106,6 +107,7 @@ dalhe -v
 - If `openspec` is not available in `PATH`, runs `npm install -g @fission-ai/openspec@latest`.
 - After copying, runs `openspec init --tools claude,codex` in current folder.
 - This mode avoids the interactive OpenSpec menu and installs configuration directly for Claude Code and Codex.
+- `dalhe init --no-openspec` copies only the template and skips OpenSpec installation and initialization.
 - Requires `npm` to be installed in order to install `OpenSpec` automatically when needed.
 - Shows total number of copied files at the end.
 
@@ -125,6 +127,7 @@ dalhe -v
 ### Listing
 
 Lists all skills available in the official git repository (`src/template/skills`), fetched directly from GitHub.
+Each installed skill is marked with `(instalada)`.
 
 If the remote repository is unreachable or not configured, it falls back to listing the skills shipped with the currently installed CLI version.
 The remote request has a 5-second timeout, including reading the response body. Invalid responses also trigger the local fallback.
@@ -140,18 +143,19 @@ Currently included skills:
 - `dl-pure-ruby`: support for developing and maintaining pure Ruby projects.
 - `dl-code-review`: Rails code quality, architecture, and pattern analysis without modifying code.
 - `dl-electron-react`: building, scaffolding, and structuring Electron desktop apps with React and TypeScript.
+- `dl-flutter-engineer`: building, maintaining, debugging, reviewing, optimizing, testing, and shipping Flutter and Dart applications.
 - `dl-rayban-meta-sdk`: building and integrating iOS/Android apps with Meta Wearables DAT for Ray-Ban Meta glasses, including the Gen 1 mobile path.
+- `dl-tabler-ui`: building and maintaining accessible, responsive web application interfaces based on Tabler.
 
 ```bash
 dalhe skill list
 ```
 
 To force listing the installed version locally (no network), set `DALHE_CLI_SKIP_REMOTE_SKILL_LIST=1`.
-Local listing checks template files concurrently and skips global installation status checks. Bulk installation and removal also skip this redundant status scan.
 
 ### Installation
 
-Installs a skill globally in both environments:
+Downloads and installs the requested skill from the official GitHub repository in both environments. It requires internet access and does not fall back to bundled templates if the remote request fails.
 
 - Codex: copies the entire skill folder to `$CODEX_HOME/skills/<skill-name>` when `CODEX_HOME` is explicitly configured.
 - Codex without `CODEX_HOME`: uses `~/.agents/skills/<skill-name>` on Linux and `%USERPROFILE%\.agents\skills\<skill-name>` on Windows.
@@ -167,7 +171,7 @@ dalhe skill install dl-rails-8
 
 ### Install all
 
-Installs all skills shipped with this CLI globally for both Codex and Claude Code.
+Downloads and installs all skills available in the official GitHub repository globally for both Codex and Claude Code. This includes skills released after the installed CLI version; it requires internet access and does not fall back to bundled templates if the remote request fails.
 
 ```bash
 dalhe skill install-all
@@ -175,7 +179,7 @@ dalhe skill install-all
 
 ### Uninstallation
 
-Removes skill from both global destinations.
+Removes a skill only when it is installed in at least one managed destination. It does not require the skill to exist in the bundled templates or on GitHub.
 
 ```bash
 dalhe skill uninstall dl-rails-8

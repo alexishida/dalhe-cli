@@ -19,15 +19,17 @@ export class InitCommand {
   helpText() {
     return [
       'Usage:',
-      '  dalhe init',
+      '  dalhe init [--no-openspec]',
       '',
       'Copies files from src/template/init and runs openspec init --tools claude,codex in current directory.',
+      '--no-openspec copies the template without installing or running OpenSpec.',
       '',
     ].join('\n');
   }
 
   async execute(args) {
-    if (args.length > 0) {
+    const skipOpenSpec = args.includes('--no-openspec');
+    if (args.length !== (skipOpenSpec ? 1 : 0)) {
       throw new CliError(`Invalid argument for init: ${args.join(' ')}`, {
         code: 'INVALID_ARGUMENT',
       });
@@ -37,6 +39,16 @@ export class InitCommand {
       sourceDir: this.templateDir,
       targetDir: this.targetDir,
     });
+    if (skipOpenSpec) {
+      return {
+        message: [
+          `Project initialized in ${result.targetDir}`,
+          `Files copied: ${result.filesCopied}`,
+          'OpenSpec: skipped.',
+          '',
+        ].join('\n'),
+      };
+    }
     const openSpecResult = await this.#initializeOpenSpec(result);
 
     return {

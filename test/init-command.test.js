@@ -74,6 +74,31 @@ test('prints openspec install command when initializer installs openspec', async
   assert.match(result.message, /OpenSpec: openspec init --tools claude,codex/);
 });
 
+test('skips OpenSpec installation and initialization when requested', async () => {
+  const calls = [];
+  const command = new InitCommand({
+    templateCopier: {
+      async copy() {
+        calls.push('copy');
+        return { targetDir: '/tmp/project', filesCopied: 3 };
+      },
+    },
+    openSpecInitializer: {
+      async initialize() {
+        assert.fail('OpenSpec must not be initialized');
+      },
+    },
+    templateDir: '/tmp/template',
+    targetDir: '/tmp/projeto',
+  });
+
+  const result = await command.execute(['--no-openspec']);
+
+  assert.deepEqual(calls, ['copy']);
+  assert.match(result.message, /OpenSpec: skipped/);
+  assert.match(command.helpText(), /dalhe init \[--no-openspec\]/);
+});
+
 test('reports copied files when openspec init fails after copy', async () => {
   const command = new InitCommand({
     templateCopier: {

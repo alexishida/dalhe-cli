@@ -26,6 +26,7 @@ export class SkillCommand {
       '  dalhe skill update-all',
       '',
       'Manages global skill installation for Codex and Claude Code.',
+      'install-all baixa todas as skills disponíveis no GitHub.',
       'update busca a skill mais recente no GitHub; sem nome, atualiza todas as instaladas.',
       '',
     ].join('\n');
@@ -89,14 +90,22 @@ export class SkillCommand {
 
   async #listSkills() {
     if (!this.remoteSkillRepository) {
-      return { skills: await this.skillManager.list({ includeStatus: false }), source: 'installed' };
+      return { skills: await this.skillManager.list(), source: 'installed' };
     }
 
     try {
-      return { skills: await this.remoteSkillRepository.list(), source: 'repository' };
+      const skills = await this.remoteSkillRepository.list();
+      return { skills: await this.#withInstallStatus(skills), source: 'repository' };
     } catch {
-      return { skills: await this.skillManager.list({ includeStatus: false }), source: 'installed' };
+      return { skills: await this.skillManager.list(), source: 'installed' };
     }
+  }
+
+  async #withInstallStatus(skills) {
+    return Promise.all(skills.map(async (skill) => ({
+      ...skill,
+      ...(await this.skillManager.status(skill.name)),
+    })));
   }
 
   #listMessage({ skills, source }) {
@@ -117,7 +126,8 @@ export class SkillCommand {
   }
 
   #skillListLines(skill) {
-    return [`- ${skill.name}`];
+    const installed = skill.codex?.installed || skill.claude?.installed || skill.claudeCommand?.installed;
+    return [`- ${skill.name}${installed ? ' (instalada)' : ''}`];
   }
 
   #installMessage(result) {

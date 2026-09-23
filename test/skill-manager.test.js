@@ -144,6 +144,35 @@ test('installs skill globally for Codex and Claude Code', async () => {
   }
 });
 
+test('installs a requested skill from GitHub instead of bundled templates', async (t) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-remote-skill-install-'));
+  t.after(() => rm(workspace, { force: true, recursive: true }));
+  const templateRootDir = join(workspace, 'templates');
+  const userHomeDir = join(workspace, 'home');
+  const codexHomeDir = join(workspace, 'codex-home');
+  await mkdir(templateRootDir, { recursive: true });
+  await createSkillTemplate(templateRootDir, 'dl-example');
+
+  const manager = new SkillManager({
+    templateRootDir,
+    env: { CODEX_HOME: codexHomeDir },
+    userHomeDir,
+    remoteSkillRepository: new RemoteSkillRepository({
+      repositoryUrl: 'https://github.com/alexishida/dalhe-cli.git',
+      fetchImpl: createGitHubFetch({
+        'dl-example/SKILL.md': '# Remote skill\n',
+        'dl-example/references/guide.md': '# Remote guide\n',
+      }),
+    }),
+  });
+
+  const result = await manager.install('dl-example');
+
+  assert.equal(result.commit, COMMIT_SHA);
+  assert.equal(await readFile(join(codexHomeDir, 'skills', 'dl-example', 'SKILL.md'), 'utf8'), '# Remote skill\n');
+  assert.equal(await readFile(join(userHomeDir, '.claude', 'skills', 'dl-example', 'references', 'guide.md'), 'utf8'), '# Remote guide\n');
+});
+
 test('installs every bundled portable skill in the default Codex and Claude paths', async (t) => {
   const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-portable-skills-'));
   t.after(() => rm(workspace, { force: true, recursive: true }));
@@ -215,6 +244,39 @@ test('installs all skills globally for Codex and Claude Code', async () => {
   }
 });
 
+test('installs every skill from GitHub, including skills absent from bundled templates', async (t) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-remote-skill-install-all-'));
+  t.after(() => rm(workspace, { force: true, recursive: true }));
+  const templateRootDir = join(workspace, 'templates');
+  const userHomeDir = join(workspace, 'home');
+  const codexHomeDir = join(workspace, 'codex-home');
+  await mkdir(templateRootDir, { recursive: true });
+  await createSkillTemplate(templateRootDir, 'bundled-only');
+
+  const manager = new SkillManager({
+    templateRootDir,
+    env: { CODEX_HOME: codexHomeDir },
+    userHomeDir,
+    remoteSkillRepository: new RemoteSkillRepository({
+      repositoryUrl: 'https://github.com/alexishida/dalhe-cli.git',
+      fetchImpl: createGitHubFetch({
+        'dl-existing/SKILL.md': '# Existing remote skill\n',
+        'dl-new/SKILL.md': '# New remote skill\n',
+        'dl-new/references/guide.md': '# Guide\n',
+      }),
+    }),
+  });
+
+  const result = await manager.installAll();
+
+  assert.equal(result.totalInstalled, 2);
+  assert.deepEqual(result.installedSkills.map((skill) => skill.name), ['dl-existing', 'dl-new']);
+  assert.equal(await exists(join(codexHomeDir, 'skills', 'dl-existing', 'SKILL.md')), true);
+  assert.equal(await exists(join(codexHomeDir, 'skills', 'dl-new', 'references', 'guide.md')), true);
+  assert.equal(await exists(join(codexHomeDir, 'skills', 'bundled-only')), false);
+  assert.equal(await exists(join(userHomeDir, '.claude', 'skills', 'dl-new', 'SKILL.md')), true);
+});
+
 test('uninstalls skill globally from Codex and Claude Code', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-skill-uninstall-'));
   const templateRootDir = join(workspace, 'templates');
@@ -234,7 +296,6 @@ test('uninstalls skill globally from Codex and Claude Code', async () => {
     await manager.install('rails8');
 
     const firstRemoval = await manager.uninstall('rails8');
-    const secondRemoval = await manager.uninstall('rails8');
 
     assert.equal(firstRemoval.removedFromCodex, true);
     assert.equal(firstRemoval.removedFromClaude, true);
@@ -242,12 +303,30 @@ test('uninstalls skill globally from Codex and Claude Code', async () => {
     assert.equal(await exists(join(codexHomeDir, 'skills', 'rails8')), false);
     assert.equal(await exists(join(userHomeDir, '.claude', 'skills', 'rails8')), false);
     assert.equal(await exists(join(userHomeDir, '.claude', 'commands', 'rails8.md')), false);
-    assert.equal(secondRemoval.removedFromCodex, false);
-    assert.equal(secondRemoval.removedFromClaude, false);
-    assert.equal(secondRemoval.removedCommand, false);
+    await assert.rejects(() => manager.uninstall('rails8'), { code: 'SKILL_NOT_INSTALLED' });
   } finally {
     await rm(workspace, { force: true, recursive: true });
   }
+});
+
+test('uninstalls a skill installed from GitHub after it leaves bundled templates', async (t) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-remote-skill-uninstall-'));
+  t.after(() => rm(workspace, { force: true, recursive: true }));
+  const codexHomeDir = join(workspace, 'codex-home');
+  const remoteSkillDir = join(codexHomeDir, 'skills', 'dl-remote-only');
+  await mkdir(remoteSkillDir, { recursive: true });
+  await writeFile(join(remoteSkillDir, 'SKILL.md'), '# Remote only\n');
+
+  const manager = new SkillManager({
+    templateRootDir: join(workspace, 'templates'),
+    env: { CODEX_HOME: codexHomeDir },
+    userHomeDir: join(workspace, 'home'),
+  });
+
+  const result = await manager.uninstall('dl-remote-only');
+
+  assert.equal(result.removedFromCodex, true);
+  assert.equal(await exists(remoteSkillDir), false);
 });
 
 test('uninstalls all skills globally from Codex and Claude Code', async () => {

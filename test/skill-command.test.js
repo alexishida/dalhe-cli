@@ -32,13 +32,21 @@ test('skill list falls back to installed skills without a remote repository', as
 
   assert.equal(
     result.message,
-    ['Available skills (from installed version):', '- rails8', ''].join('\n'),
+    ['Available skills (from installed version):', '- rails8 (instalada)', ''].join('\n'),
   );
 });
 
 test('skill list shows skills from the repository', async () => {
   const command = new SkillCommand({
     skillManager: {
+      async status(name) {
+        return {
+          name,
+          codex: { installed: name === 'rails8' },
+          claude: { installed: name === 'pure-ruby' },
+          claudeCommand: { installed: false },
+        };
+      },
       async list() {
         throw new Error('should not be called');
       },
@@ -54,7 +62,7 @@ test('skill list shows skills from the repository', async () => {
 
   assert.equal(
     result.message,
-    ['Available skills from the repository:', '- rails8', '- pure-ruby', ''].join('\n'),
+    ['Available skills from the repository:', '- rails8 (instalada)', '- pure-ruby (instalada)', ''].join('\n'),
   );
 });
 
@@ -84,7 +92,7 @@ test('skill list falls back without checking global status when the remote reque
   const command = new SkillCommand({
     skillManager: {
       async list(options) {
-        assert.deepEqual(options, { includeStatus: false });
+        assert.equal(options, undefined);
         return [{ name: 'dl-example' }];
       },
     },
@@ -119,6 +127,7 @@ test('skill install-all shows installed skill names', async () => {
     result.message,
     ['2 skills installed globally.', '- nodejs-dev', '- pure-ruby', ''].join('\n'),
   );
+  assert.match(command.helpText(), /install-all baixa todas as skills disponíveis no GitHub/);
 });
 
 test('skill uninstall-all shows removed skill names', async () => {

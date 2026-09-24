@@ -141,6 +141,7 @@ Currently included skills:
 - `dl-rails-code-audit`: structured Rails 7/8 audits focused on security, code smells, conventions, and Oracle or MariaDB/MySQL concerns.
 - `dl-nodejs-dev`: support for developing and maintaining Node.js projects.
 - `dl-pure-ruby`: support for developing and maintaining pure Ruby projects.
+- `dl-rust-engineering-expert`: implementation, debugging, review, performance optimization, and maintenance of Rust projects.
 - `dl-code-review`: Rails code quality, architecture, and pattern analysis without modifying code.
 - `dl-electron-react`: building, scaffolding, and structuring Electron desktop apps with React and TypeScript.
 - `dl-flutter-engineer`: building, maintaining, debugging, reviewing, optimizing, testing, and shipping Flutter and Dart applications.

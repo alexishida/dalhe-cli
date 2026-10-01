@@ -146,6 +146,7 @@ Currently included skills:
 - `dl-flutter-engineer`: building, maintaining, debugging, reviewing, optimizing, testing, and shipping Flutter and Dart applications.
 - `dl-rayban-meta-sdk`: building and integrating iOS/Android apps with Meta Wearables DAT for Ray-Ban Meta glasses, including the Gen 1 mobile path.
 - `dl-tabler-ui`: building and maintaining accessible, responsive web application interfaces based on Tabler.
+- `dl-typescript-engineering`: reviewing, debugging, securing, refactoring, testing, and optimizing TypeScript and JavaScript codebases.
 
 ```bash
 dalhe skill list

@@ -135,3 +135,7 @@ validation
 ```
 
 Do not assume that recompiling PPC code alone creates a usable native port.
+
+## Analysis tooling
+
+Combine Ghidra (with a loader appropriate to the container: PS1 EXE, PS2/PSP ELF/PRX, GameCube/Wii DOL/REL, Xbox 360 XEX) with REA's MCP tools (`open_binary`, `list_segments`, `list_procedures`, `procedure_*`, `xrefs`, `export_evidence_bundle`) to seed function discovery, relocations, and ABI documentation. Record loader/analyzer provenance and verify against raw bytes and runtime behavior.

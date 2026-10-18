@@ -46,6 +46,8 @@ Determine:
 
 Useful compiler fingerprints can come from startup code, exception tables, runtime helper names, instruction-selection patterns, stack-protector sequences, standard-library symbols, metadata sections, and version strings. Treat any single fingerprint as probabilistic unless confirmed by multiple signals.
 
+Ghidra's auto-analysis and REA's `open_binary`/`binary_overview` supply machine-checked format and architecture facts; record their provenance like any other evidence.
+
 ## Phase C — reproducibility before matching
 
 Build the candidate twice with no source changes and compare outputs. If different, diagnose nondeterminism before target matching.
@@ -83,7 +85,7 @@ Then subdivide code by symbol/function or stable address ranges.
 
 For each function:
 
-1. Identify callers/callees and ABI.
+1. Identify callers/callees and ABI (Ghidra exports or REA `procedure_callers`/`procedure_callees`).
 2. Infer parameters and return values from register/stack use.
 3. Track stack locals and lifetime overlap.
 4. Identify globals, literal pools, vtables, jump tables, string references.

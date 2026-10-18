@@ -241,6 +241,8 @@ RUNTIME_OBSERVED
 HEURISTIC
 ```
 
+Ghidra's analyzers and REA's listing tools can generate these seeds; classify every tool-derived discovery with the same provenance labels.
+
 Do not silently promote weak heuristic candidates to trusted code.
 
 ## Indirect jumps and calls
@@ -565,6 +567,45 @@ Every patch should state:
 
 Do not mix widescreen, framerate, input, or quality-of-life modifications into the correctness core.
 
+## Binary analysis tooling: Ghidra and REA
+
+Prefer evidence-producing analysis tools over manual hex reading. Record the provenance of every discovery.
+
+### Ghidra
+
+Ghidra (GUI or headless) is the default disassembler/decompiler for this work:
+
+- import the target with the loader that matches the container (console formats may need community loaders/plugins);
+- run auto-analysis for function discovery, xrefs, and data typing;
+- export symbol tables, function lists, xrefs, comments, and decompiler output as recompiler metadata;
+- script repeated analysis with `analyzeHeadless` so exports are reproducible.
+
+```text
+analyzeHeadless <project> <name> -import target.bin -scriptPath scripts/ -postScript ExportMetadata.java
+```
+
+Treat Ghidra output as evidence, not ground truth: record loader, processor settings, analyzer set, and script versions; verify important assumptions against raw bytes and runtime behavior.
+
+### REA
+
+REA (https://github.com/morluto/rea) exposes reverse-engineering tools to the agent through MCP and a CLI. When an REA MCP server is configured, prefer it for inspecting the target binary and collecting citable evidence:
+
+- `open_binary` / `close_binary` — open a local native binary and identify format, architecture, loader arguments, and SHA-256;
+- `binary_overview`, `list_segments`, `list_procedures`, `list_names`, `list_strings` — map the program surface;
+- `procedure_info`, `procedure_assembly`, `procedure_pseudo_code`, `procedure_callers`, `procedure_callees`, `procedure_references` — inspect functions, ABI, and call sites;
+- `find_xrefs_to_name`, `xrefs`, `inspect_address_context`, `read_bytes` — resolve data/code relationships and pointer tables;
+- `get_call_graph`, `build_call_path`, `trace_call_path` — trace direct and indirect control flow;
+- `set_address_name`, `set_comment`, `record_unknown` — annotate findings as you work;
+- `export_evidence_bundle` / `import_evidence_bundle` — persist the session's findings as a deterministic bundle for review or handoff.
+
+If no MCP server is available, use the REA CLI (`npx rea-agents setup`, then `rea --help`). Native analysis through REA requires a backend provider such as Ghidra, Hopper, or IDA; configure one per the REA documentation.
+
+Rules:
+
+- Use Ghidra/REA evidence to seed function discovery, symbol maps, relocations, and ABI documentation, keeping the provenance classification from "Control-flow recovery" for every tool-derived discovery.
+- Pseudocode is a hypothesis generator. Verify against assembly, xrefs, and runtime validation before trusting semantics.
+- If REA or Ghidra is unavailable, fall back to platform binutils and `references/platform-notes.md`.
+
 ## Source and binary analysis
 
 When a matching decompilation project exists, treat it as metadata and documentation, not automatically as the source of truth.
@@ -577,6 +618,8 @@ Useful inputs include:
 - enums
 - relocation information
 - comments documenting hardware behavior
+- Ghidra project exports (symbols, functions, xrefs, comments)
+- REA evidence bundles documenting discovered code and data
 
 Verify important assumptions against the actual target binary.
 

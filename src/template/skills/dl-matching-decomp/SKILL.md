@@ -45,9 +45,44 @@ Collect:
 - build scripts, lockfiles, linker scripts, response files, SDK/toolchain versions;
 - whether the binary contains nondeterministic fields.
 
-Prefer standard tools already available in the environment. Typical examples: `file`, `strings`, `readelf`, `objdump`, `nm`, `llvm-objdump`, `otool`, `dumpbin`, `sha256sum`, `shasum`, `cmp`, `xxd`, Ghidra, IDA, Binary Ninja, radare2/rizin, or platform-specific ROM tools.
+Prefer standard tools already available in the environment. Typical examples: `file`, `strings`, `readelf`, `objdump`, `nm`, `llvm-objdump`, `otool`, `dumpbin`, `sha256sum`, `shasum`, `cmp`, `xxd`, Ghidra, IDA, Binary Ninja, radare2/rizin, REA (MCP/CLI, https://github.com/morluto/rea), or platform-specific ROM tools.
 
 Never assume a compiler or optimization level from coding style alone. Gather evidence.
+
+## Ghidra and REA in the matching loop
+
+### Ghidra
+
+Ghidra is the preferred disassembler/decompiler for this workflow. Use it to:
+
+- import the reference binary with the loader that matches the container (console formats may need community loaders/plugins);
+- run auto-analysis for function discovery, xrefs, and data typing;
+- export symbols, function lists, xrefs, comments, and decompiler output as project metadata;
+- drive analysis reproducibly with `analyzeHeadless` so exports can be regenerated.
+
+```text
+analyzeHeadless <project> <name> -import reference.bin -scriptPath scripts/ -postScript ExportProject.java
+```
+
+Record the loader, processor settings, analyzer set, and script versions with every export. Verify decompiler output against assembly and call sites before using it as reconstruction evidence.
+
+### REA
+
+REA (https://github.com/morluto/rea) exposes reverse-engineering tools to the agent through MCP and a CLI. When an REA MCP server is configured, prefer it for inspecting the reference and collecting citable evidence:
+
+- `open_binary` — identify format, architecture, loader arguments, and SHA-256;
+- `binary_overview`, `list_segments`, `list_procedures`, `list_names`, `list_strings` — map the program surface and locate candidate functions;
+- `procedure_info`, `procedure_assembly`, `procedure_pseudo_code`, `procedure_callers`, `procedure_callees`, `procedure_references` — reconstruct semantics per unit;
+- `compare_functions` — instruction-level comparison of a reconstructed unit against the reference;
+- `evaluate_reconstruction_coverage`, `verify_reconstruction` — measure reconstruction coverage before claiming a match;
+- `export_evidence_bundle` / `import_evidence_bundle` — persist findings as deterministic bundles for progress tracking and handoff.
+
+Native analysis through REA requires a backend provider such as Ghidra, Hopper, or IDA; configure one per the REA documentation. If no MCP server is available, use the REA CLI (`npx rea-agents setup`, then `rea --help`).
+
+Rules:
+
+- Treat Ghidra/REA pseudocode as evidence with limitations, not ground truth: confirm each reconstruction against assembly and the observed data flow.
+- Keep evidence bundles next to the progress table so each unit's match status links to the evidence that produced it.
 
 ## Reproducible-build gate
 
@@ -98,7 +133,7 @@ When symbols are absent, use stable synthetic names based on address (for exampl
 
 For each unit:
 
-- inspect disassembly and decompiler output;
+- inspect disassembly and decompiler output (Ghidra GUI or headless exports, REA `procedure_assembly` / `procedure_pseudo_code`);
 - identify calling convention, parameter widths, signedness, return type, stack frame, globals, constants, switch tables, and control flow;
 - reconstruct the simplest high-level code consistent with the machine code and surrounding callers/callees;
 - preserve observable integer widths, overflow behavior, aliasing constraints, struct packing, alignment, and volatile access where relevant;

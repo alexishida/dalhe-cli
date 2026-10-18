@@ -50,6 +50,10 @@ description:
 
 The instructions avoid vendor-specific tool names, permissions, hooks, subagents, or proprietary metadata so the same skill can be used by both ecosystems.
 
+## Tooling
+
+The skill assumes standard binutils plus Ghidra and, when configured, REA (https://github.com/morluto/rea) for agent-driven binary analysis. See the "Binary analysis tooling: Ghidra and REA" section of `SKILL.md`.
+
 ## Suggested prompts
 
 ```text

@@ -46,6 +46,42 @@ Use platform-specific header, checksum, compression, relocation/overlay, and ass
 
 Ghidra, IDA, Binary Ninja, radare2/rizin and similar tools are useful for control flow, cross-references, data typing, and function discovery. Their pseudocode should not be copied uncritically into source. Verify against assembly and call sites.
 
+### Ghidra
+
+Preferred for this workflow when it supports the target format:
+
+- import with the loader that matches the container (check whether a community loader/plugin is needed for console ROMs or obscure formats);
+- run auto-analysis, then export symbols, functions, xrefs, comments, and decompiler output as metadata;
+- use `analyzeHeadless` for reproducible exports:
+
+```text
+analyzeHeadless proj name -import target.bin -scriptPath scripts/ -postScript ExportProject.java
+```
+
+- record loader, processor settings, analyzer set, and script versions with exports.
+
+### REA (MCP/CLI)
+
+REA (https://github.com/morluto/rea) provides reverse-engineering tools to the agent through MCP and a CLI, using Ghidra, Hopper, or IDA as its native-analysis backend.
+
+Setup:
+
+```text
+npx rea-agents setup                      # register REA with your agent
+npm install -g rea-agents && rea --help   # CLI alternative
+```
+
+Useful tools for matching decompilation:
+
+- `open_binary`, `binary_overview`, `list_segments`, `list_procedures`, `list_names`, `list_strings`;
+- `procedure_info`, `procedure_assembly`, `procedure_pseudo_code`, `procedure_callers`, `procedure_callees`, `procedure_references`;
+- `find_xrefs_to_name`, `xrefs`, `inspect_address_context`, `read_bytes`;
+- `compare_functions` (instruction-level unit comparison);
+- `evaluate_reconstruction_coverage`, `verify_reconstruction`;
+- `export_evidence_bundle` / `import_evidence_bundle`.
+
+Tool results carry inline evidence and coverage/limitation notes; keep them with the progress table. If REA is not configured, use the REA CLI or fall back to the tools above.
+
 ## Comparing compiler output
 
 For small units, compile to assembly/object files and compare before linking. This reduces noise from layout and metadata. Useful outputs:

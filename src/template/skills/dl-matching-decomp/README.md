@@ -109,6 +109,10 @@ python dl-matching-decomp/scripts/compare_binary.py reference.bin candidate.bin
 
 `compare_binary.py` exits `0` only for an exact SHA-256 match, which makes it convenient as a build/check step.
 
+## Tooling
+
+The workflow assumes standard binary utilities plus Ghidra and, when configured, REA (https://github.com/morluto/rea) for agent-driven binary analysis. See `references/tooling.md` for setup, tool selection, and REA MCP/CLI usage.
+
 ## Safety scope
 
 Use only on software/artifacts you are authorized to inspect. The skill is for preservation, interoperability, debugging, migration, research, and legitimate source reconstruction—not for bypassing DRM/access controls, defeating license/authentication mechanisms, credential extraction, or malware development.

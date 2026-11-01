@@ -149,6 +149,7 @@ Currently included skills:
 - `dl-rayban-meta-sdk`: building and integrating iOS/Android apps with Meta Wearables DAT for Ray-Ban Meta glasses, including the Gen 1 mobile path.
 - `dl-tabler-ui`: building and maintaining accessible, responsive web application interfaces based on Tabler.
 - `dl-typescript-engineering`: reviewing, debugging, securing, refactoring, testing, and optimizing TypeScript and JavaScript codebases.
+- `dl-qt-qml-ui`: creating, redesigning, and reviewing modern desktop interfaces in Qt 6, QML, and Qt Quick.
 
 ```bash
 dalhe skill list

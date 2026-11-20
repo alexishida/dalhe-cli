@@ -171,6 +171,7 @@ test('installs all available skills', async () => {
   const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-install-all-'));
   const parsedHome = parse(fakeHome);
   const env = {
+    CODEX_HOME: join(fakeHome, '.agents'),
     HOME: fakeHome,
     USERPROFILE: fakeHome,
     HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
@@ -189,6 +190,7 @@ test('installs all available skills', async () => {
       nodeArgs: ['--import', pathToFileURL(preloadFile).href],
     });
 
+    assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /1 skill installed globally\./);
     assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
@@ -210,6 +212,7 @@ test('uninstalls all available skills', async () => {
   const fakeHome = await mkdtemp(resolve(tmpdir(), 'dalhe-cli-home-uninstall-all-'));
   const parsedHome = parse(fakeHome);
   const env = {
+    CODEX_HOME: join(fakeHome, '.agents'),
     HOME: fakeHome,
     USERPROFILE: fakeHome,
     HOMEDRIVE: parsedHome.root.replace(/[\\\/]+$/, ''),
@@ -228,11 +231,14 @@ test('uninstalls all available skills', async () => {
       nodeArgs: ['--import', pathToFileURL(preloadFile).href],
     });
 
-    assert.equal(installResult.status, 0);
+    assert.equal(installResult.status, 0, installResult.stderr);
 
-    const result = runCli(['skill', 'uninstall-all'], { env });
+    const result = runCli(['skill', 'uninstall-all'], {
+      env,
+      nodeArgs: ['--import', pathToFileURL(preloadFile).href],
+    });
 
-    assert.match(result.stdout, /\d+ skills removed globally\./);
+    assert.match(result.stdout, /1 skill removed globally\./);
     assert.match(result.stdout, /- dl-rails-8/);
     assert.equal(result.stderr, '');
     assert.equal(result.status, 0);

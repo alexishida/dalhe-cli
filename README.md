@@ -191,7 +191,7 @@ dalhe skill uninstall dl-rails-8
 
 ### Uninstall all
 
-Removes all skills shipped with this CLI from both global destinations.
+Removes installed skills whose names appear in the bundled templates or the current GitHub snapshot, including their Claude commands. Only skills actually removed are counted. When a remote repository is configured, this requires internet access; if the snapshot fails, no skills are removed.
 
 ```bash
 dalhe skill uninstall-all

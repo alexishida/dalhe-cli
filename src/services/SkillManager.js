@@ -89,10 +89,19 @@ export class SkillManager {
 
   async uninstallAll() {
     const skills = await this.list({ includeStatus: false });
+    const names = new Set(skills.map((skill) => skill.name));
+    if (this.remoteSkillRepository) {
+      const snapshot = await this.#remoteSnapshot();
+      for (const skill of snapshot.skills) names.add(skill.name);
+    }
+    for (const name of names) assertSkillName(name);
     const removedSkills = [];
 
-    for (const skill of skills) {
-      removedSkills.push(await this.#uninstallSkill(skill.name));
+    for (const name of [...names].sort()) {
+      const result = await this.#uninstallSkill(name);
+      if (result.removedFromCodex || result.removedFromClaude || result.removedCommand) {
+        removedSkills.push(result);
+      }
     }
 
     return {

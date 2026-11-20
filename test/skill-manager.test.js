@@ -366,6 +366,56 @@ test('uninstalls all skills globally from Codex and Claude Code', async () => {
   }
 });
 
+test('uninstall-all removes the union of remote and bundled installed skills only', async (t) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-uninstall-union-'));
+  t.after(() => rm(workspace, { recursive: true, force: true }));
+  const templateRootDir = join(workspace, 'templates');
+  for (const name of ['dl-bundled', 'dl-shared', 'dl-absent']) {
+    await createSkillTemplate(templateRootDir, name);
+  }
+  const manager = new SkillManager({
+    templateRootDir, userHomeDir: workspace, env: {},
+    remoteSkillRepository: new RemoteSkillRepository({
+      repositoryUrl: 'https://github.com/alexishida/dalhe-cli.git',
+      fetchImpl: createGitHubFetch({
+        'dl-new/SKILL.md': '# New',
+        'dl-shared/SKILL.md': '# Shared',
+        'dl-remote-absent/SKILL.md': '# Absent',
+      }),
+    }),
+  });
+  await manager.installAll();
+  await manager.uninstall('dl-remote-absent');
+  const commandDir = join(workspace, '.claude', 'commands');
+  await writeFile(join(commandDir, 'dl-bundled.md'), 'command only');
+
+  const result = await manager.uninstallAll();
+  assert.equal(result.totalUninstalled, 3);
+  assert.deepEqual(result.removedSkills.map((skill) => skill.name), ['dl-bundled', 'dl-new', 'dl-shared']);
+  assert.equal(result.removedSkills[0].removedCommand, true);
+  for (const name of ['dl-new', 'dl-shared']) {
+    assert.equal(await exists(join(workspace, '.agents', 'skills', name)), false);
+    assert.equal(await exists(join(workspace, '.claude', 'skills', name)), false);
+    assert.equal(await exists(join(commandDir, `${name}.md`)), false);
+  }
+  assert.deepEqual(await manager.uninstallAll(), { totalUninstalled: 0, removedSkills: [] });
+});
+
+test('uninstall-all preserves installed skills when the remote snapshot fails', async (t) => {
+  const workspace = await mkdtemp(join(tmpdir(), 'dalhe-uninstall-failure-'));
+  t.after(() => rm(workspace, { recursive: true, force: true }));
+  const templateRootDir = join(workspace, 'templates');
+  await createSkillTemplate(templateRootDir, 'dl-bundled');
+  const installedDir = join(workspace, '.agents', 'skills', 'dl-bundled');
+  await mkdir(installedDir, { recursive: true });
+  const manager = new SkillManager({
+    templateRootDir, userHomeDir: workspace, env: {},
+    remoteSkillRepository: { async snapshot() { throw new Error('snapshot failed'); } },
+  });
+  await assert.rejects(() => manager.uninstallAll(), /snapshot failed/);
+  assert.equal(await exists(installedDir), true);
+});
+
 test('updates all installed skills from GitHub instead of local templates', async () => {
   const workspace = await mkdtemp(join(tmpdir(), 'dalhe-cli-skill-update-all-'));
   const templateRootDir = join(workspace, 'templates');
